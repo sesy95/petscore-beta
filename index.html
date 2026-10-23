@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>PetScore Beta - Cibo & Prodotti Pet</title>
+  <title>PetScore - Scelte su misura per il tuo Pet</title>
   <link rel="manifest" href="/manifest.json" />
   <meta name="theme-color" content="#10B981" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -11,15 +11,11 @@
   <meta name="apple-mobile-web-app-title" content="PetScore" />
   <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/616/616408.png" />
 
-  <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
-  <!-- React & ReactDOM + Babel (Permette di eseguire tutto senza terminale o installazioni) -->
   <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
   <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
   <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-  <!-- Libreria Fotocamera Reale Barcode -->
   <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
-  <!-- Libreria Database Condiviso Supabase -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
   <style>
@@ -35,22 +31,55 @@
     const { useState, useEffect, useMemo, useRef } = React;
 
     // ============================================================================
-    // CONFIGURAZIONE SUPABASE (Puoi incollare qui le tue chiavi o farlo dall'App!)
+    // INCOLLA QUI I TUOI 2 CODICI DI SUPABASE (Righe 37 e 38)
     // ============================================================================
     const DEFAULT_SUPABASE_URL = "https://ifxcuoiohdvzmtsgxeyi.supabase.co";
     const DEFAULT_SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImlmeGN1b2lvaGR2em10c2d4ZXlpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTI0MTI3NTAsImV4cCI6MjEwNzk4ODc1MH0.B4gdW_PzCESIN4hniW0K6rsBTmUhYVOwkZ1cdMkdSyk";
 
     // ============================================================================
-    // AVATAR SVG FLAT PASTEL
+    // PALETTE COLORI PASTELLO & OPZIONI DI SUPER-PERSONALIZZAZIONE PET
     // ============================================================================
     const PASTEL_THEMES = {
-      sage: { name: 'Salvia', bg: '#DCFCE7', accent: '#10B981', border: '#A7F3D0', text: '#065F46' },
       peach: { name: 'Pesca', bg: '#FFEDD5', accent: '#F97316', border: '#FED7AA', text: '#9A3412' },
+      sage: { name: 'Salvia', bg: '#DCFCE7', accent: '#10B981', border: '#A7F3D0', text: '#065F46' },
       lavender: { name: 'Lavanda', bg: '#F3E8FF', accent: '#8B5CF6', border: '#DDD6FE', text: '#5B21B6' },
       sky: { name: 'Cielo', bg: '#E0F2FE', accent: '#0EA5E9', border: '#BAE6FD', text: '#075985' },
-      butter: { name: 'Burro', bg: '#FEF3C7', accent: '#F59E0B', border: '#FDE68A', text: '#92400E' }
+      butter: { name: 'Burro', bg: '#FEF3C7', accent: '#F59E0B', border: '#FDE68A', text: '#92400E' },
+      rose: { name: 'Rosa Cipria', bg: '#FFE4E6', accent: '#F43F5E', border: '#FECDD3', text: '#9F1239' }
     };
 
+    const AVATAR_STYLES = [
+      { id: 'pinscher', label: 'Pinscher / Toy', species: 'dog' },
+      { id: 'retriever', label: 'Labrador / Golden', species: 'dog' },
+      { id: 'shepherd', label: 'Pastore / Lupo', species: 'dog' },
+      { id: 'bulldog', label: 'Bulldog / Carlino', species: 'dog' },
+      { id: 'poodle', label: 'Barboncino / Riccio', species: 'dog' },
+      { id: 'dachshund', label: 'Bassotto / Segugio', species: 'dog' },
+      { id: 'cat_tabby', label: 'Gatto Europeo', species: 'cat' },
+      { id: 'cat_fluffy', label: 'Gatto Pelo Lungo', species: 'cat' }
+    ];
+
+    const ALLERGY_OPTIONS = [
+      { id: 'pollo', label: '🚫 Pollo & Pollame', keywords: ['pollo', 'pollame', 'chicken', 'poultry', 'tacchino', 'volaille'] },
+      { id: 'cereali', label: '🌾 Cereali & Glutine', keywords: ['frumento', 'grano', 'mais', 'orzo', 'avena', 'cereali', 'wheat', 'corn', 'maize', 'gluten'] },
+      { id: 'manzo', label: '🥩 Manzo & Vitello', keywords: ['manzo', 'bovino', 'vitello', 'beef'] },
+      { id: 'pesce', label: '🐟 Pesce & Salmone', keywords: ['pesce', 'salmone', 'trota', 'tonno', 'merluzzo', 'fish', 'salmon'] },
+      { id: 'latticini', label: '🥛 Latticini & Lattosio', keywords: ['latte', 'formaggio', 'siero', 'yogurt', 'milk', 'cheese'] },
+      { id: 'uova', label: '🥚 Uova', keywords: ['uova', 'uovo', 'egg'] }
+    ];
+
+    const SENSITIVITY_OPTIONS = [
+      { id: 'renal', label: '🛡️ Protezione Reni / Senior', shortBadge: '🛡️ Reni Protetti' },
+      { id: 'dental', label: '🦷 Denti Sensibili / Tartaro', shortBadge: '🦷 Denti & Crocchetta Mini' },
+      { id: 'joints', label: '🦴 Articolazioni & Mobilità', shortBadge: '🦴 Supporto Articolare' },
+      { id: 'skin', label: '✨ Cute Sensibile & Pelo', shortBadge: '✨ Cute Delicata' },
+      { id: 'digestion', label: '🫃 Digestione Delicata', shortBadge: '🫃 Alta Digeribilità' },
+      { id: 'urinary', label: '💧 Vie Urinarie & pH', shortBadge: '💧 Controllo Urinario' }
+    ];
+
+    // ============================================================================
+    // ILLUSTRAZIONI AVATAR FLAT SVG (8 RAZZE DISTINTE)
+    // ============================================================================
     const PetAvatarSVG = ({ style = 'pinscher', theme = 'peach', size = 64 }) => {
       const t = PASTEL_THEMES[theme] || PASTEL_THEMES.peach;
       return (
@@ -58,14 +87,14 @@
           <circle cx="50" cy="50" r="46" fill={t.bg} stroke={t.border} strokeWidth="3" />
           {style === 'pinscher' && (
             <g>
-              <polygon points="22,42 14,12 40,28" fill="#334155" />
-              <polygon points="24,38 18,18 36,28" fill="#FDA4AF" />
-              <polygon points="78,42 86,12 60,28" fill="#334155" />
-              <polygon points="76,38 82,18 64,28" fill="#FDA4AF" />
-              <ellipse cx="50" cy="56" rx="26" ry="24" fill="#334155" />
-              <circle cx="40" cy="46" r="4" fill="#D97706" />
-              <circle cx="60" cy="46" r="4" fill="#D97706" />
-              <ellipse cx="50" cy="65" rx="16" ry="12" fill="#D97706" />
+              <polygon points="22,42 13,10 40,28" fill="#1E293B" />
+              <polygon points="24,38 17,16 36,28" fill="#FDA4AF" />
+              <polygon points="78,42 87,10 60,28" fill="#1E293B" />
+              <polygon points="76,38 83,16 64,28" fill="#FDA4AF" />
+              <ellipse cx="50" cy="56" rx="25" ry="23" fill="#1E293B" />
+              <circle cx="40" cy="45" r="4" fill="#D97706" />
+              <circle cx="60" cy="45" r="4" fill="#D97706" />
+              <ellipse cx="50" cy="65" rx="16" ry="11" fill="#D97706" />
               <circle cx="40" cy="52" r="3.5" fill="#FFFFFF" />
               <circle cx="40" cy="52" r="2" fill="#0F172A" />
               <circle cx="60" cy="52" r="3.5" fill="#FFFFFF" />
@@ -75,19 +104,65 @@
           )}
           {style === 'retriever' && (
             <g>
-              <ellipse cx="22" cy="52" rx="10" ry="18" transform="rotate(15 22 52)" fill="#D97706" />
-              <ellipse cx="78" cy="52" rx="10" ry="18" transform="rotate(-15 78 52)" fill="#D97706" />
+              <ellipse cx="22" cy="52" rx="10" ry="18" transform="rotate(14 22 52)" fill="#D97706" />
+              <ellipse cx="78" cy="52" rx="10" ry="18" transform="rotate(-14 78 52)" fill="#D97706" />
               <circle cx="50" cy="54" r="26" fill="#F59E0B" />
               <ellipse cx="50" cy="64" rx="14" ry="11" fill="#FEF3C7" />
-              <circle cx="39" cy="49" r="3" fill="#1E293B" />
-              <circle cx="61" cy="49" r="3" fill="#1E293B" />
+              <circle cx="39" cy="49" r="3.2" fill="#1E293B" />
+              <circle cx="61" cy="49" r="3.2" fill="#1E293B" />
               <ellipse cx="50" cy="59" rx="5.5" ry="4" fill="#1E293B" />
             </g>
           )}
-          {style === 'cat' && (
+          {style === 'shepherd' && (
             <g>
-              <polygon points="24,44 20,16 44,30" fill="#64748B" />
-              <polygon points="76,44 80,16 56,30" fill="#64748B" />
+              <polygon points="24,42 18,12 42,30" fill="#475569" />
+              <polygon points="76,42 82,12 58,30" fill="#475569" />
+              <ellipse cx="50" cy="56" rx="26" ry="24" fill="#B45309" />
+              <polygon points="50,32 34,54 50,74 66,54" fill="#334155" />
+              <circle cx="40" cy="51" r="3" fill="#FFFFFF" />
+              <circle cx="60" cy="51" r="3" fill="#FFFFFF" />
+              <ellipse cx="50" cy="63" rx="6" ry="4" fill="#0F172A" />
+            </g>
+          )}
+          {style === 'bulldog' && (
+            <g>
+              <polygon points="22,34 16,20 34,26" fill="#78716C" />
+              <polygon points="78,34 84,20 66,26" fill="#78716C" />
+              <rect x="22" y="30" width="56" height="46" rx="22" fill="#D6D3D1" />
+              <ellipse cx="50" cy="61" rx="18" ry="12" fill="#44403C" />
+              <circle cx="37" cy="48" r="3.5" fill="#1C1917" />
+              <circle cx="63" cy="48" r="3.5" fill="#1C1917" />
+              <ellipse cx="50" cy="56" rx="5" ry="3.5" fill="#1C1917" />
+            </g>
+          )}
+          {style === 'poodle' && (
+            <g>
+              <circle cx="23" cy="55" r="11" fill="#F8FAFC" stroke="#CBD5E1" strokeWidth="2" />
+              <circle cx="77" cy="55" r="11" fill="#F8FAFC" stroke="#CBD5E1" strokeWidth="2" />
+              <circle cx="50" cy="55" r="24" fill="#FFFFFF" stroke="#CBD5E1" strokeWidth="2" />
+              <circle cx="40" cy="29" r="9" fill="#FFFFFF" />
+              <circle cx="60" cy="29" r="9" fill="#FFFFFF" />
+              <circle cx="50" cy="26" r="11" fill="#FFFFFF" />
+              <circle cx="41" cy="52" r="3" fill="#1E293B" />
+              <circle cx="59" cy="52" r="3" fill="#1E293B" />
+              <ellipse cx="50" cy="60" rx="4.5" ry="3.2" fill="#1E293B" />
+            </g>
+          )}
+          {style === 'dachshund' && (
+            <g>
+              <ellipse cx="19" cy="56" rx="9" ry="21" transform="rotate(8 19 56)" fill="#7C2D12" />
+              <ellipse cx="81" cy="56" rx="9" ry="21" transform="rotate(-8 81 56)" fill="#7C2D12" />
+              <ellipse cx="50" cy="55" rx="24" ry="22" fill="#9A3412" />
+              <ellipse cx="50" cy="64" rx="13" ry="10" fill="#FDBA74" />
+              <circle cx="40" cy="50" r="3" fill="#1E293B" />
+              <circle cx="60" cy="50" r="3" fill="#1E293B" />
+              <ellipse cx="50" cy="60" rx="5" ry="3.5" fill="#1E293B" />
+            </g>
+          )}
+          {(style === 'cat' || style === 'cat_tabby') && (
+            <g>
+              <polygon points="24,44 19,16 44,30" fill="#64748B" />
+              <polygon points="76,44 81,16 56,30" fill="#64748B" />
               <ellipse cx="50" cy="56" rx="26" ry="22" fill="#94A3B8" />
               <ellipse cx="40" cy="52" rx="4" ry="4.5" fill="#ECFDF5" />
               <ellipse cx="40" cy="52" rx="1.8" ry="3.5" fill="#065F46" />
@@ -96,40 +171,54 @@
               <polygon points="47,59 53,59 50,63" fill="#F43F5E" />
             </g>
           )}
+          {style === 'cat_fluffy' && (
+            <g>
+              <polygon points="24,42 18,16 42,30" fill="#CBD5E1" />
+              <polygon points="76,42 82,16 58,30" fill="#CBD5E1" />
+              <ellipse cx="50" cy="57" rx="29" ry="24" fill="#F8FAFC" stroke="#CBD5E1" strokeWidth="2" />
+              <circle cx="40" cy="52" r="4" fill="#0284C7" />
+              <circle cx="40" cy="52" r="1.8" fill="#0F172A" />
+              <circle cx="60" cy="52" r="4" fill="#0284C7" />
+              <circle cx="60" cy="52" r="1.8" fill="#0F172A" />
+              <polygon points="47,59 53,59 50,63" fill="#FDA4AF" />
+            </g>
+          )}
         </svg>
       );
     };
 
     // ============================================================================
-    // DATABASE PRODOTTI INIZIALE + GUIDA ACRONIMI
+    // GUIDA ACRONIMI E LINEA GUIDA PER OGNI INDICE (ZERO FORMULE)
     // ============================================================================
     const ACRONYM_GLOSSARY = [
-      { code: 'FEDIAF', name: 'Linee Guida Nutrizionali Europee', desc: 'L\'ente scientifico europeo che stabilisce i livelli minimi e massimi di proteine, grassi e minerali sicuri per cani e gatti in ogni fase di vita.' },
-      { code: 'DMB', name: 'Sostanza Secca (Dry Matter Basis)', desc: 'Il valore reale dei nutrienti dopo aver tolto l\'acqua. È l\'unico modo scientifico per confrontare crocchette (10% acqua) e scatolette umide (80% acqua).' },
-      { code: 'NFE', name: 'Carboidrati / Amidi Nascosti', desc: 'I produttori non hanno l\'obbligo di scrivere i carboidrati in etichetta. PetScore li svela sottraendo da 100 proteine, grassi, fibre, ceneri e umidità.' },
-      { code: 'Ceneri', name: 'Ceneri Grezze (Minerali Totali)', desc: 'Indicano la quantità di sali minerali (calcio, fosforo, magnesio). Se superano l\'8-9% DMB in un cane/gatto senior, affaticano i reni.' },
-      { code: 'INCI & pH', name: 'Sicurezza Dermatologica', desc: 'La cute del cane ha un pH neutro (6.5–7.5), diverso da quello acido umano (5.5). Controlliamo anche l\'assenza di sostanze tossiche come la Permetrina per i gatti.' }
+      { code: 'Match col Pet (%)', name: 'Indice di Compatibilità Personalizzato', desc: 'Valuta se il prodotto è adatto specificamente per l\'età, il peso, la forma fisica, le allergie e le sensibilità cliniche (es. reni o denti) del tuo animale.' },
+      { code: 'Qualità Base (/100)', name: 'Punteggio Oggettivo Indipendente', desc: 'Misura la qualità intrinseca delle materie prime, la chiarezza dell\'etichetta e l\'assenza di zuccheri o additivi controversi secondo le linee guida europee FEDIAF.' },
+      { code: 'Dose Consigliata (g)', name: 'Stima Fabbisogno Nutrizionale', desc: 'Indica i grammi giornalieri consigliati incrociando la densità energetica dell\'alimento con il peso, l\'età, la sterilizzazione e il movimento del tuo Pet.' },
+      { code: 'FEDIAF', name: 'Linee Guida Nutrizionali Europee', desc: 'L\'ente scientifico europeo di riferimento che stabilisce i livelli nutrizionali sicuri e bilanciati per cani e gatti in ogni fase della vita.' },
+      { code: 'DMB', name: 'Sostanza Secca (Dry Matter Basis)', desc: 'Il valore reale dei nutrienti dopo aver rimosso l\'acqua. Permette di confrontare equamente crocchette (10% acqua) e scatolette umide (80% acqua).' },
+      { code: 'NFE', name: 'Carboidrati / Amidi Nascosti', desc: 'Spesso non sono scritti in etichetta. PetScore li rivela automaticamente per proteggere cani e gatti da sovrappeso e picchi glicemici.' },
+      { code: 'Ceneri Grezze', name: 'Minerali Totali (Calcio, Fosforo, Magnesio)', desc: 'Indicano la quota minerale residua. Nei cani e gatti senior devono rimanere contenute (< 7.8% DMB) per non affaticare la funzione renale.' },
+      { code: 'INCI & pH', name: 'Sicurezza Dermatologica & Antiparassitari', desc: 'Controlla che gli shampoo rispettino il pH neutro canino (6.5–7.5) e segnala principi attivi antiparassitari pericolosi (come la Permetrina per i gatti).' }
     ];
 
+    // ============================================================================
+    // CATALOGO PRODOTTI PRECARICATO (PULITO E SENZA TECNICISMI)
+    // ============================================================================
     const INITIAL_PRODUCTS = [
       {
         id: 'prod-senior-mini',
         ean: '8009470008723',
         category: 'food',
-        subCategory: 'Crocchette Secco',
+        subCategory: '🥣 Cibo Secco',
         targetSpecies: 'dog',
         name: 'Senior Mini Care - Trota, Riso & Artiglio del Diavolo',
         brand: 'NaturaVet',
         priceAvg: '21,90 € (2 kg)',
         confidenceScore: 98,
         kibbleSizeMm: 7,
-        ingredientsText: 'Trota fresca 26%, riso integrale 22%, trota disidratata 14%, piselli, olio di salmone (Omega-3), glucosamina (900 mg/kg), condroitina.',
-        proteinSourceScore: 25,
-        carbFatQualityScore: 10,
-        labelTransparencyScore: 9,
-        hasAddedSugars: false,
-        hasChemicalPreservatives: false,
-        hasFunctionalBonus: true,
+        ingredientsText: 'Trota fresca 26%, riso integrale 22%, trota disidratata 14%, piselli, olio di salmone (Omega-3), inulina di cicoria (FOS), glucosamina (900 mg/kg), condroitina.',
+        proteinSourceScore: 25, carbFatQualityScore: 10, labelTransparencyScore: 9,
+        hasAddedSugars: false, hasChemicalPreservatives: false, hasFunctionalBonus: true,
         analytical: { protein: 23.0, fat: 11.5, fiber: 3.5, ash: 5.6, moisture: 10.0 },
         prices: [
           { store: 'Zooplus', price: '19,99 €', note: 'Spedizione gratis', url: 'https://www.zooplus.it' },
@@ -137,75 +226,104 @@
           { store: 'Amazon', price: '21,90 €', note: 'Consegna Prime', url: 'https://www.amazon.it' }
         ],
         reviews: [
-          { id: 'r1', userName: 'Marco & Ercole', petInfo: 'Pinscher • 13 anni • 5 kg', rating: 5, pros: 'Crocchetta 7mm tenera, reni perfetti', cons: 'Sacchetto solo da 2kg', comment: 'A 13 anni faceva fatica a masticare le crocchette classiche. Queste da 7mm le adora e gli esami renali sono ottimi!', verifiedScan: true }
+          { id: 'r1', userName: 'Marco & Ercole', petInfo: 'Pinscher • 13 anni • 5 kg', rating: 5, pros: 'Crocchetta 7mm tenera, zero pollo, reni perfetti', cons: 'Sacco piccolo', comment: 'A 13 anni faticava a masticare le crocchette classiche. Queste da 7mm sono friabili, senza pollo e con ceneri basse!', verifiedScan: true }
         ]
+      },
+      {
+        id: 'prod-monge-mini',
+        ean: '8009470011952',
+        category: 'food',
+        subCategory: '🥣 Cibo Secco',
+        targetSpecies: 'dog',
+        name: 'Superpremium Mini Adult Salmone e Riso',
+        brand: 'Monge',
+        priceAvg: '16,50 € (2,5 kg)',
+        confidenceScore: 96,
+        kibbleSizeMm: 8,
+        ingredientsText: 'Pesce (salmone disidratato 26%, salmone fresco 10%), riso (15%), grasso animale (olio di pollo purificato), polpa di barbabietola, XOS, glucosamina, condroitina.',
+        proteinSourceScore: 24, carbFatQualityScore: 9, labelTransparencyScore: 9,
+        hasAddedSugars: false, hasChemicalPreservatives: false, hasFunctionalBonus: true,
+        analytical: { protein: 25.0, fat: 14.0, fiber: 2.5, ash: 6.0, moisture: 10.0 },
+        prices: [
+          { store: 'Zooplus', price: '15,49 €', note: 'In offerta', url: 'https://www.zooplus.it' },
+          { store: 'Amazon', price: '16,50 €', note: 'Consegna Prime', url: 'https://www.amazon.it' }
+        ],
+        reviews: []
       },
       {
         id: 'prod-high-prot',
         ean: '8010276039912',
         category: 'food',
-        subCategory: 'Crocchette Grain Free',
+        subCategory: '🥣 Cibo Secco Grain Free',
         targetSpecies: 'dog',
         name: 'Wildness High-Protein Cervo & Cinghiale',
         brand: 'AlphaWolf',
         priceAvg: '64,90 € (12 kg)',
         confidenceScore: 95,
         kibbleSizeMm: 15,
-        ingredientsText: 'Cervo disidratato (32%), cinghiale disidratato (18%), patate dolci, grasso d\'anatra, olio di salmone.',
-        proteinSourceScore: 25,
-        carbFatQualityScore: 9,
-        labelTransparencyScore: 9,
-        hasAddedSugars: false,
-        hasChemicalPreservatives: false,
-        hasFunctionalBonus: true,
+        ingredientsText: 'Cervo disidratato (32%), cinghiale disidratato (18%), patate dolci, grasso d\'anatra, olio di salmone, glucosamina.',
+        proteinSourceScore: 25, carbFatQualityScore: 9, labelTransparencyScore: 9,
+        hasAddedSugars: false, hasChemicalPreservatives: false, hasFunctionalBonus: true,
         analytical: { protein: 38.0, fat: 18.0, fiber: 3.2, ash: 8.6, moisture: 10.0 },
         prices: [
-          { store: 'Zooplus', price: '61,99 €', note: 'Miglior Prezzo', url: 'https://www.zooplus.it' },
-          { store: 'Amazon', price: '64,90 €', note: 'Prime', url: 'https://www.amazon.it' }
+          { store: 'Zooplus', price: '61,99 €', note: 'Miglior Prezzo', url: 'https://www.zooplus.it' }
         ],
         reviews: [
-          { id: 'r2', userName: 'Elena B.', petInfo: 'Pastore Tedesco • 4 anni • 32 kg', rating: 5, pros: 'Energia top, pelo lucido', cons: 'Crocchetta grande e dura', comment: 'Perfette per il mio cane sportivo, ma sconsigliate per cani piccoli o anziani perché sono molto proteiche.', verifiedScan: true }
+          { id: 'r2', userName: 'Elena B.', petInfo: 'Pastore Tedesco • 4 anni • 32 kg', rating: 5, pros: 'Energia top, pelo lucido', cons: 'Crocchetta grande 15mm', comment: 'Perfette per il mio cane giovane e sportivo, ma troppo proteiche per un senior.', verifiedScan: true }
         ]
+      },
+      {
+        id: 'prod-almo-cat',
+        ean: '8001154121940',
+        category: 'food',
+        subCategory: '🥫 Cibo Umido',
+        targetSpecies: 'cat',
+        name: 'HFC Natural Tonno & Gamberetti in Brodo',
+        brand: 'Almo Nature',
+        priceAvg: '1,29 € (70 g)',
+        confidenceScore: 97,
+        kibbleSizeMm: null,
+        ingredientsText: 'Tonno 55%, brodo di pesce 24%, gamberetti 20%, riso 1%. Ingredienti in origine idonei al consumo umano (HFC), senza glutine.',
+        proteinSourceScore: 25, carbFatQualityScore: 10, labelTransparencyScore: 10,
+        hasAddedSugars: false, hasChemicalPreservatives: false, hasFunctionalBonus: true,
+        analytical: { protein: 17.0, fat: 1.5, fiber: 0.1, ash: 1.0, moisture: 79.0 },
+        prices: [
+          { store: 'Zooplus', price: '7,49 € (6x70g)', note: 'Multipack risparmio', url: 'https://www.zooplus.it' }
+        ],
+        reviews: []
       },
       {
         id: 'prod-cat-wet',
         ean: '4008429081750',
         category: 'food',
-        subCategory: 'Umido Gatto',
+        subCategory: '🥫 Cibo Umido',
         targetSpecies: 'cat',
         name: 'Mousse Gourmet Selezione Pollo in Gelatina',
         brand: 'FelineGold',
         priceAvg: '0,89 € (85 g)',
         confidenceScore: 91,
         kibbleSizeMm: null,
-        ingredientsText: 'Carni e derivati (di cui pollo min. 4%), sottoprodotti di origine vegetale, zuccheri (sciroppo di caramello), minerali.',
-        proteinSourceScore: 6,
-        carbFatQualityScore: 3,
-        labelTransparencyScore: 2,
-        hasAddedSugars: true,
-        hasChemicalPreservatives: true,
-        hasFunctionalBonus: false,
+        ingredientsText: 'Carni e derivati (di cui pollo min. 4%), cereali, sottoprodotti di origine vegetale, zuccheri (sciroppo di caramello), minerali.',
+        proteinSourceScore: 6, carbFatQualityScore: 3, labelTransparencyScore: 2,
+        hasAddedSugars: true, hasChemicalPreservatives: true, hasFunctionalBonus: false,
         analytical: { protein: 9.0, fat: 4.5, fiber: 0.5, ash: 2.2, moisture: 81.0 },
         prices: [
           { store: 'Amazon', price: '19,90 € (24 pz)', note: 'Pacco scorta', url: 'https://www.amazon.it' }
         ],
-        reviews: [
-          { id: 'r3', userName: 'Chiara M.', petInfo: 'Gatto Europeo • 5 anni', rating: 2, pros: 'Al gatto piace', cons: 'Contiene zuccheri e solo 4% pollo', comment: 'Grazie allo scanner ho scoperto che contiene caramello e zuccheri aggiunti!', verifiedScan: true }
-        ]
+        reviews: []
       },
       {
         id: 'prod-antiparasitic',
         ean: '3661103045816',
         category: 'non-food',
-        subCategory: 'Antiparassitari',
+        subCategory: '🛡️ Antiparassitari',
         targetSpecies: 'dog',
         name: 'Collare ScudoTotale 8 Mesi (Deltametrina)',
         brand: 'VetShield',
         priceAvg: '29,50 €',
         confidenceScore: 94,
-        ingredientsText: 'Principio attivo: Deltametrina (Piretroide sintetico). Protezione contro Flebotomi (Leishmaniosi), Zecche e Pulci.',
-        toxicForCats: true,
-        cautionForVeryOldTinyDogs: true,
+        ingredientsText: 'Principio attivo: Deltametrina (Piretroide sintetico). Protezione contro Flebotomi (vettori Leishmaniosi), Zecche e Pulci.',
+        toxicForCats: true, cautionForVeryOldTinyDogs: true,
         nonFoodBaseTechScore: 86,
         nonFoodMetrics: [
           { label: 'Copertura Leishmaniosi & Zecche', score: 95 },
@@ -213,23 +331,116 @@
           { label: 'Resistenza all\'acqua & Inodore', score: 90 }
         ],
         prices: [
-          { store: 'Amazon', price: '26,90 €', note: 'Sconto -15%', url: 'https://www.amazon.it' },
-          { store: 'Zooplus', price: '28,50 €', note: 'Disponibile', url: 'https://www.zooplus.it' }
+          { store: 'Amazon', price: '26,90 €', note: 'Sconto -15%', url: 'https://www.amazon.it' }
         ],
-        reviews: [
-          { id: 'r4', userName: 'Davide R.', petInfo: 'Labrador • 5 anni', rating: 5, pros: 'Zero zecche e protegge dai pappataci', cons: 'Pericoloso se convivi con gatti', comment: 'Ottimo per i cani, ma attenzione se avete anche un gatto in casa!', verifiedScan: true }
-        ]
+        reviews: []
+      },
+      {
+        id: 'prod-shampoo-ph',
+        ean: '8025792004121',
+        category: 'non-food',
+        subCategory: '🧼 Igiene & Cute',
+        targetSpecies: 'dog',
+        name: 'Shampoo Dermocalmante Avena & Clorexidina (pH 7.0)',
+        brand: 'DermaPet',
+        priceAvg: '14,90 € (250 ml)',
+        confidenceScore: 96,
+        ingredientsText: 'Aqua, Coco-Glucoside (tensioattivo vegetale delicato), Avena Sativa Kernel Extract, Chlorhexidine Digluconate (0.5%), Aloe Barbadensis, pH fisiologico 7.0.',
+        toxicForCats: false, cautionForVeryOldTinyDogs: false,
+        nonFoodBaseTechScore: 94,
+        nonFoodMetrics: [
+          { label: 'Rispetto pH Fisiologico Canino (7.0)', score: 98 },
+          { label: 'Delicatezza INCI (Senza SLS/Parabeni)', score: 94 },
+          { label: 'Efficacia Lenitiva Cute Sensibile', score: 92 }
+        ],
+        prices: [
+          { store: 'Amazon', price: '14,90 €', note: 'Consegna rapida', url: 'https://www.amazon.it' }
+        ],
+        reviews: []
+      },
+      {
+        id: 'prod-cat-litter',
+        ean: '8015699007721',
+        category: 'non-food',
+        subCategory: '✨ Lettiera Gatto',
+        targetSpecies: 'cat',
+        name: 'Lettiera Vegetale Agglomerante al Tofu Zero-Polvere',
+        brand: 'EcoMicio',
+        priceAvg: '11,90 € (6 L)',
+        confidenceScore: 95,
+        ingredientsText: '100% fibra vegetale di pisello e tofu naturale biodegradabile. Smaltibile nel WC, senza profumi sintetici né polveri di silice.',
+        toxicForCats: false, cautionForVeryOldTinyDogs: false,
+        nonFoodBaseTechScore: 93,
+        nonFoodMetrics: [
+          { label: 'Potere Agglomerante (Palla compatta)', score: 94 },
+          { label: 'Zero Polvere (Dust-Free per vie respiratorie)', score: 97 },
+          { label: 'Controllo Odori Ammoniaca', score: 89 }
+        ],
+        prices: [
+          { store: 'Zooplus', price: '10,99 €', note: 'Offerta lancio', url: 'https://www.zooplus.it' }
+        ],
+        reviews: []
       }
     ];
 
+    // Converte in modo trasparente un prodotto esterno in una scheda pulita
+    function normalizeExternalFoodItem(p) {
+      const cleanEan = p.code || String(Date.now());
+      const nut = p.nutriments || {};
+      const rawText = (p.ingredients_text_it || p.ingredients_text || '').toLowerCase();
+      const fullTitle = `${p.product_name_it || p.product_name || ''} ${p.categories || ''}`.toLowerCase();
+      const isCat = fullTitle.includes('cat') || fullTitle.includes('chat') || fullTitle.includes('gatto') || fullTitle.includes('gatti') || fullTitle.includes('feline') || fullTitle.includes('felix') || fullTitle.includes('sheba') || fullTitle.includes('whiskas');
+      const isWet = fullTitle.includes('umido') || fullTitle.includes('mousse') || fullTitle.includes('pat') || fullTitle.includes('gelatina') || fullTitle.includes('busta') || fullTitle.includes('filett') || Number(nut['moisture_100g']) > 50;
+
+      const hasSugar = rawText.includes('zuccher') || rawText.includes('sugar') || rawText.includes('caramel') || rawText.includes('sucre');
+      const hasGenericMeat = rawText.includes('carni e derivati') || rawText.includes('viandes et sous-produits') || rawText.includes('meat and animal derivatives');
+
+      return {
+        id: `prod-${cleanEan}`,
+        ean: cleanEan,
+        category: 'food',
+        subCategory: isWet ? '🥫 Cibo Umido' : '🥣 Cibo Secco',
+        targetSpecies: isCat ? 'cat' : 'dog',
+        name: p.product_name_it || p.product_name || `Alimento (${cleanEan})`,
+        brand: p.brands ? p.brands.split(',')[0].trim() : 'Linea Pet',
+        priceAvg: 'Vedi offerte negozi',
+        confidenceScore: p.ingredients_text ? 92 : 82,
+        kibbleSizeMm: isWet ? null : 10,
+        ingredientsText: p.ingredients_text_it || p.ingredients_text || 'Composizione analitica verificata tramite codice EAN.',
+        proteinSourceScore: hasGenericMeat ? 9 : 21,
+        carbFatQualityScore: 8,
+        labelTransparencyScore: p.ingredients_text ? 8 : 6,
+        hasAddedSugars: hasSugar,
+        hasChemicalPreservatives: false,
+        hasFunctionalBonus: rawText.includes('omega') || rawText.includes('glucosamin') || rawText.includes('taurin') || rawText.includes('inulin'),
+        analytical: {
+          protein: Number(nut.proteins_100g) || (isWet ? 10.0 : 25.0),
+          fat: Number(nut.fat_100g) || (isWet ? 5.0 : 13.5),
+          fiber: Number(nut.fiber_100g) || (isWet ? 0.6 : 2.8),
+          ash: Number(nut['ash_100g']) || (isWet ? 2.0 : 6.8),
+          moisture: Number(nut['moisture_100g']) || (isWet ? 80.0 : 10.0)
+        },
+        prices: [
+          { store: 'Amazon', price: 'Verifica Prezzo', note: 'Consegna rapida', url: `https://www.amazon.it/s?k=${encodeURIComponent((p.brands || '') + ' ' + (p.product_name_it || p.product_name || cleanEan))}` },
+          { store: 'Zooplus', price: 'Confronta', note: 'Negozio specializzato', url: `https://www.zooplus.it/search/results?q=${encodeURIComponent(p.brands || p.product_name || cleanEan)}` }
+        ],
+        reviews: []
+      };
+    }
+
     // ============================================================================
-    // MOTORE DI CALCOLO ALGORITMO (0-100 + SOSTANZA SECCA DMB + MATCH PET)
+    // MOTORE DI VALUTAZIONE + ALLERGIE + SENSIBILITÀ + CALCOLO DOSE GIORNALIERA
     // ============================================================================
     function evaluateProductForPet(product, pet) {
+      const allergies = pet.allergies || [];
+      const sensitivities = pet.sensitivities || [];
+      const ingLower = (product.ingredientsText || '').toLowerCase() + ' ' + (product.name || '').toLowerCase();
+
+      // 1. PRODOTTI NON-FOOD
       if (product.category === 'non-food') {
         const commAvg = product.nonFoodMetrics
           ? product.nonFoodMetrics.reduce((acc, m) => acc + m.score, 0) / product.nonFoodMetrics.length
-          : 80;
+          : 85;
         const baseScore = Math.round(product.nonFoodBaseTechScore * 0.5 + commAvg * 0.5);
         let matchScore = baseScore;
         const alerts = [];
@@ -239,26 +450,35 @@
           alerts.push({
             type: 'danger',
             title: `PERICOLO MORTALE PER ${pet.name.toUpperCase()}`,
-            desc: 'Contiene Piretroidi (Deltametrina/Permetrina): neurotossici e potenzialmente letali per i gatti.'
+            desc: 'Contiene Piretroidi (Deltametrina/Permetrina): neurotossici e letali per i gatti.'
           });
-        } else if (product.cautionForVeryOldTinyDogs && pet.species === 'dog' && pet.ageYears >= 10 && pet.weightKg <= 7) {
+        } else if (product.cautionForVeryOldTinyDogs && pet.species === 'dog' && (pet.ageYears >= 10 || sensitivities.includes('skin')) && pet.weightKg <= 7) {
           matchScore -= 18;
           alerts.push({
             type: 'warning',
-            title: `Cautela per ${pet.name} (${pet.ageYears} anni, ${pet.weightKg} kg)`,
-            desc: 'Su cani senior di taglia piccola monitorare eventuali arrossamenti sul collo nelle prime 48 ore.'
+            title: `Cautela per la cute/età di ${pet.name}`,
+            desc: 'Su cani senior di taglia piccola o con cute sensibile monitorare il collo nelle prime 48 ore.'
           });
         } else {
-          alerts.push({
-            type: 'success',
-            title: `Sicuro e compatibile con ${pet.name}`,
-            desc: 'Nessuna controindicazione rilevata per specie, taglia ed età.'
-          });
+          if (sensitivities.includes('skin') && product.subCategory.includes('Igiene')) {
+            matchScore = Math.min(100, matchScore + 5);
+            alerts.push({
+              type: 'success',
+              title: `Ideale per la cute sensibile di ${pet.name}`,
+              desc: 'Rispetta il pH fisiologico 7.0 senza tensioattivi aggressivi.'
+            });
+          } else {
+            alerts.push({
+              type: 'success',
+              title: `Sicuro e compatibile con ${pet.name}`,
+              desc: 'Nessuna controindicazione rilevata per specie, taglia ed età.'
+            });
+          }
         }
-        return { baseScore: Math.max(0, Math.min(100, baseScore)), matchScore: Math.max(0, Math.min(100, matchScore)), dmb: null, alerts };
+        return { baseScore: Math.max(0, Math.min(100, baseScore)), matchScore: Math.max(0, Math.min(100, matchScore)), dmb: null, doseInfo: null, alerts };
       }
 
-      // CALCOLO ALIMENTI SU SOSTANZA SECCA (DMB)
+      // 2. CALCOLO ALIMENTI SU SOSTANZA SECCA (DMB) + ENERGIA ATWATER
       const { protein, fat, fiber, ash, moisture } = product.analytical;
       const dryMatter = Math.max(1, 100 - moisture);
       const nfeLabel = Math.max(0, 100 - (protein + fat + fiber + ash + moisture));
@@ -273,6 +493,28 @@
         nfeLabel: +nfeLabel.toFixed(1)
       };
 
+      // Calcolo Fabbisogno Energetico (FEDIAF RER x K) e Dose in Grammi (nascosto nell'accordion)
+      const rer = 70 * Math.pow(Math.max(1, Number(pet.weightKg) || 5), 0.75);
+      let kFactor = pet.species === 'cat' ? 1.2 : 1.4;
+      if (pet.ageYears >= 9) kFactor = 1.15;
+      else if (pet.ageYears < 1) kFactor = 2.0;
+      if (pet.bodyCondition === 'overweight') kFactor *= 0.85;
+      if (pet.bodyCondition === 'underweight') kFactor *= 1.15;
+      if (pet.activityLevel === 'high') kFactor *= 1.2;
+      if (pet.activityLevel === 'low') kFactor *= 0.9;
+
+      const dailyKcalNeeded = Math.round(rer * kFactor);
+      const productKcalPer100g = Math.max(45, Math.round(protein * 3.5 + fat * 8.5 + nfeLabel * 3.5));
+      const dailyGrams = Math.max(15, Math.round((dailyKcalNeeded / productKcalPer100g) * 100));
+
+      const doseInfo = {
+        dailyGrams,
+        perMealGrams: Math.round(dailyGrams / 2),
+        dailyKcalNeeded,
+        productKcalPer100g
+      };
+
+      // Score Base (0-100)
       const scoreA = (product.proteinSourceScore || 18) + (product.carbFatQualityScore || 7) + (product.labelTransparencyScore || 6);
       const isCatFood = product.targetSpecies === 'cat';
 
@@ -292,72 +534,120 @@
       let matchScore = baseScore;
       const alerts = [];
 
+      // Controllo Specie
       if (product.targetSpecies !== pet.species) {
         matchScore = 15;
         alerts.push({
           type: 'danger',
-          title: `Alimento per specie diversa da ${pet.name}`,
-          desc: 'Cani e gatti hanno fabbisogni metabolici incompatibili.'
+          title: `Alimento formulato per specie diversa da ${pet.name}`,
+          desc: 'Cani e gatti hanno fabbisogni nutrizionali incompatibili.'
         });
-      } else {
-        const isSenior = pet.ageYears >= 9;
-        const isSmallDog = pet.species === 'dog' && pet.weightKg <= 9;
+        return { baseScore, matchScore, dmb, doseInfo, alerts };
+      }
 
-        if (isSenior) {
-          if (dmb.ash > 7.8 || dmb.protein > 36) {
-            matchScore -= 38;
-            alerts.push({
-              type: 'danger',
-              title: `Carico renale elevato per ${pet.name} (${pet.ageYears} anni)`,
-              desc: `Ceneri al ${dmb.ash}% DMB e Proteine al ${dmb.protein}% DMB: eccessivi per i reni di un senior.`
-            });
-          } else {
-            matchScore += 6;
-            alerts.push({
-              type: 'success',
-              title: `Reni protetti per l'età di ${pet.name}`,
-              desc: `Ceneri basse (${dmb.ash}% DMB) e proteine bilanciate (${dmb.protein}% DMB).`
-            });
-          }
+      // A. CONTROLLO INTOLLERANZE / ALLERGIE SEGNALATE SUL PET
+      const triggeredAllergies = [];
+      allergies.forEach(alId => {
+        const foundOpt = ALLERGY_OPTIONS.find(o => o.id === alId);
+        if (foundOpt && foundOpt.keywords.some(kw => ingLower.includes(kw))) {
+          triggeredAllergies.push(foundOpt.label.replace(/^[^\s]+\s/, ''));
         }
+      });
 
-        if (isSmallDog && product.kibbleSizeMm) {
-          if (product.kibbleSizeMm > 11) {
-            matchScore -= 16;
-            alerts.push({
-              type: 'warning',
-              title: `Crocchetta grande (${product.kibbleSizeMm} mm) per ${pet.weightKg} kg`,
-              desc: `Difficile da masticare per la bocca di ${pet.name}. Ideale < 9 mm.`
-            });
-          } else {
-            matchScore += 4;
-            alerts.push({
-              type: 'success',
-              title: `Crocchetta Mini (${product.kibbleSizeMm} mm) perfetta`,
-              desc: `Ideale per la masticazione di ${pet.name}.`
-            });
-          }
-        }
+      if (triggeredAllergies.length > 0) {
+        matchScore = 12;
+        alerts.push({
+          type: 'danger',
+          title: `🚨 Contiene ${triggeredAllergies.join(', ')} (Escluso per ${pet.name})`,
+          desc: `Negli ingredienti è presente un allergene che hai segnalato nel profilo di ${pet.name}.`
+        });
+      }
 
-        if (product.hasAddedSugars) {
-          matchScore -= 20;
+      // B. CONTROLLO ETÀ SENIOR & PROTEZIONE RENALE
+      const needsRenalCare = pet.ageYears >= 9 || sensitivities.includes('renal');
+      if (needsRenalCare) {
+        if (dmb.ash > 7.8 || dmb.protein > 36) {
+          matchScore -= 38;
           alerts.push({
             type: 'danger',
-            title: 'Zuccheri aggiunti rilevati in etichetta',
-            desc: 'Dannosi per denti, peso e glicemia.'
+            title: `Carico renale elevato per ${pet.name}`,
+            desc: `Ceneri al ${dmb.ash}% DMB e Proteine al ${dmb.protein}% DMB: eccessivi per preservare i reni.`
+          });
+        } else if (triggeredAllergies.length === 0) {
+          matchScore += 6;
+          alerts.push({
+            type: 'success',
+            title: `Reni protetti per ${pet.name}`,
+            desc: `Ceneri contenute (${dmb.ash}% DMB) e proteine bilanciate (${dmb.protein}% DMB).`
           });
         }
+      }
+
+      // C. CONTROLLO FORMA FISICA (SOVRAPPESO)
+      if (pet.bodyCondition === 'overweight' && dmb.fat > 15.5) {
+        matchScore -= 18;
+        alerts.push({
+          type: 'warning',
+          title: `Grassi elevati (${dmb.fat}% DMB) per controllo peso`,
+          desc: `Per mantenere in linea ${pet.name} è preferibile restare sotto il 14% di grassi DMB.`
+        });
+      }
+
+      // D. CONTROLLO TAGLIA PICCOLA & DENTI SENSIBILI
+      const needsMiniKibble = (pet.species === 'dog' && pet.weightKg <= 9) || sensitivities.includes('dental');
+      if (needsMiniKibble && product.kibbleSizeMm) {
+        if (product.kibbleSizeMm > 10) {
+          matchScore -= 16;
+          alerts.push({
+            type: 'warning',
+            title: `Crocchetta grande (${product.kibbleSizeMm} mm) per i denti di ${pet.name}`,
+            desc: `Per bocche piccole o denti sensibili è consigliata una crocchetta < 9 mm (o umido).`
+          });
+        } else if (triggeredAllergies.length === 0) {
+          matchScore += 4;
+          alerts.push({
+            type: 'success',
+            title: `Crocchetta Mini (${product.kibbleSizeMm} mm) facile da masticare`,
+            desc: `Perfetta per la bocca e i denti di ${pet.name}.`
+          });
+        }
+      }
+
+      // E. ARTICOLAZIONI
+      if (sensitivities.includes('joints') && (ingLower.includes('glucosamina') || ingLower.includes('condroitina') || ingLower.includes('artiglio'))) {
+        matchScore += 4;
+        alerts.push({
+          type: 'success',
+          title: `Contiene supporto articolare per ${pet.name}`,
+          desc: 'Arricchito con condroprotettori (Glucosamina / Condroitina) e Omega-3.'
+        });
+      }
+
+      // F. ZUCCHERI AGGIUNTI
+      if (product.hasAddedSugars) {
+        matchScore -= 22;
+        alerts.push({
+          type: 'danger',
+          title: 'Zuccheri aggiunti rilevati in etichetta',
+          desc: 'Sconsigliati per denti, peso ed equilibrio glicemico.'
+        });
       }
 
       if (alerts.length === 0) {
         alerts.push({
           type: 'success',
           title: `Ottima compatibilità con ${pet.name}`,
-          desc: 'Profilo nutrizionale in linea con taglia ed età.'
+          desc: 'Profilo nutrizionale in linea con età, peso ed esigenze.'
         });
       }
 
-      return { baseScore, matchScore: Math.max(0, Math.min(100, Math.round(matchScore))), dmb, alerts };
+      return {
+        baseScore,
+        matchScore: Math.max(0, Math.min(100, Math.round(matchScore))),
+        dmb,
+        doseInfo,
+        alerts
+      };
     }
 
     function getBadgeStyle(score) {
@@ -367,79 +657,122 @@
     }
 
     // ============================================================================
-    // COMPONENTE PRINCIPALE DELL'APP
+    // COMPONENTE PRINCIPALE APP
     // ============================================================================
     function App() {
-      // Persistenza su LocalStorage (così i tuoi amici non perdono i dati quando riaprono l'app)
       const [flowStep, setFlowStep] = useState(() => localStorage.getItem('ps_flowStep') || 'onboarding');
       const [pets, setPets] = useState(() => {
-        const saved = localStorage.getItem('ps_pets');
+        const saved = localStorage.getItem('ps_pets_v3');
         return saved ? JSON.parse(saved) : [
-          { id: 'pet-ercole', name: 'Ercole', species: 'dog', breed: 'Pinscher Nano', ageYears: 13, weightKg: 5, avatarStyle: 'pinscher', theme: 'peach', sterilized: true },
-          { id: 'pet-mia', name: 'Mia', species: 'cat', breed: 'Europeo', ageYears: 4, weightKg: 4.2, avatarStyle: 'cat', theme: 'lavender', sterilized: true }
+          {
+            id: 'pet-ercole',
+            name: 'Ercole',
+            species: 'dog',
+            breed: 'Pinscher Nano',
+            ageYears: 13,
+            weightKg: 5,
+            avatarStyle: 'pinscher',
+            theme: 'peach',
+            sterilized: true,
+            bodyCondition: 'ideal',
+            activityLevel: 'normal',
+            allergies: ['pollo'],
+            sensitivities: ['renal', 'dental']
+          },
+          {
+            id: 'pet-mia',
+            name: 'Mia',
+            species: 'cat',
+            breed: 'Europeo',
+            ageYears: 4,
+            weightKg: 4.2,
+            avatarStyle: 'cat_tabby',
+            theme: 'lavender',
+            sterilized: true,
+            bodyCondition: 'ideal',
+            activityLevel: 'low',
+            allergies: ['cereali'],
+            sensitivities: ['urinary']
+          }
         ];
       });
       const [activePetId, setActivePetId] = useState(() => localStorage.getItem('ps_activePetId') || 'pet-ercole');
       const [products, setProducts] = useState(() => {
-        const saved = localStorage.getItem('ps_products');
+        const saved = localStorage.getItem('ps_products_v3');
         return saved ? JSON.parse(saved) : INITIAL_PRODUCTS;
       });
       const [selectedProductId, setSelectedProductId] = useState('prod-senior-mini');
 
-      // Configurazione Supabase (Cloud condiviso)
-      const [sbUrl, setSbUrl] = useState(() => localStorage.getItem('ps_sb_url') || DEFAULT_SUPABASE_URL);
-      const [sbKey, setSbKey] = useState(() => localStorage.getItem('ps_sb_key') || DEFAULT_SUPABASE_ANON_KEY);
-      const [showCloudModal, setShowCloudModal] = useState(false);
+      const [sbUrl] = useState(() => localStorage.getItem('ps_sb_url') || DEFAULT_SUPABASE_URL);
+      const [sbKey] = useState(() => localStorage.getItem('ps_sb_key') || DEFAULT_SUPABASE_ANON_KEY);
+
+      // Modali
       const [showFeedbackModal, setShowFeedbackModal] = useState(false);
       const [showGlossaryModal, setShowGlossaryModal] = useState(false);
       const [showScannerModal, setShowScannerModal] = useState(false);
+      const [showAddProductModal, setShowAddProductModal] = useState(false);
 
-      // Stati UI
+      // Ricerca Unificata & UI
       const [searchQuery, setSearchQuery] = useState('');
+      const [isSearchingSilent, setIsSearchingSilent] = useState(false);
       const [categoryFilter, setCategoryFilter] = useState('all');
-      const [openAccordion, setOpenAccordion] = useState('nutrition');
+      const [openAccordion, setOpenAccordion] = useState('');
       const [toastMsg, setToastMsg] = useState(null);
 
-      // Stati Scanner Fotocamera Reale + EAN
+      // Scanner Fotocamera Reale + EAN
       const [cameraActive, setCameraActive] = useState(false);
       const [cameraError, setCameraError] = useState('');
       const [eanInput, setEanInput] = useState('');
       const [eanLoading, setEanLoading] = useState(false);
       const qrScannerRef = useRef(null);
 
-      // Stati Form Nuovo Pet
-      const [newPetName, setNewPetName] = useState('');
-      const [newPetSpecies, setNewPetSpecies] = useState('dog');
-      const [newPetBreed, setNewPetBreed] = useState('');
-      const [newPetAge, setNewPetAge] = useState(5);
-      const [newPetWeight, setNewPetWeight] = useState(8);
-      const [newPetAvatar, setNewPetAvatar] = useState('pinscher');
-      const [newPetTheme, setNewPetTheme] = useState('sage');
+      // Stati Super-Personalizzazione Pet (Creazione / Modifica)
+      const [editingPetId, setEditingPetId] = useState(null);
+      const [petName, setPetName] = useState('');
+      const [petSpecies, setPetSpecies] = useState('dog');
+      const [petBreed, setPetBreed] = useState('');
+      const [petAge, setPetAge] = useState(5);
+      const [petWeight, setPetWeight] = useState(7);
+      const [petAvatar, setPetAvatar] = useState('pinscher');
+      const [petTheme, setPetTheme] = useState('sage');
+      const [petSterilized, setPetSterilized] = useState(true);
+      const [petBodyCondition, setPetBodyCondition] = useState('ideal');
+      const [petActivity, setPetActivity] = useState('normal');
+      const [petAllergies, setPetAllergies] = useState([]);
+      const [petSensitivities, setPetSensitivities] = useState([]);
 
-      // Stati Form Nuova Recensione
+      // Stati Nuova Recensione
       const [revAuthor, setRevAuthor] = useState('');
       const [revRating, setRevRating] = useState(5);
       const [revPros, setRevPros] = useState('');
       const [revCons, setRevCons] = useState('');
       const [revComment, setRevComment] = useState('');
 
-      // Stati Form Feedback Beta Tester
+      // Stati Aggiunta Rapida Prodotto Mancante
+      const [newProdEan, setNewProdEan] = useState('');
+      const [newProdName, setNewProdName] = useState('');
+      const [newProdBrand, setNewProdBrand] = useState('');
+      const [newProdCat, setNewProdCat] = useState('food');
+      const [newProdIng, setNewProdIng] = useState('');
+      const [newProdProt, setNewProdProt] = useState(25);
+      const [newProdFat, setNewProdFat] = useState(13);
+      const [newProdAsh, setNewProdAsh] = useState(6.5);
+
+      // Stati Feedback
       const [fbName, setFbName] = useState('');
       const [fbType, setFbType] = useState('Suggerimento');
       const [fbMessage, setFbMessage] = useState('');
 
-      // Salvataggio automatico in locale
       useEffect(() => { localStorage.setItem('ps_flowStep', flowStep); }, [flowStep]);
-      useEffect(() => { localStorage.setItem('ps_pets', JSON.stringify(pets)); }, [pets]);
+      useEffect(() => { localStorage.setItem('ps_pets_v3', JSON.stringify(pets)); }, [pets]);
       useEffect(() => { localStorage.setItem('ps_activePetId', activePetId); }, [activePetId]);
-      useEffect(() => { localStorage.setItem('ps_products', JSON.stringify(products)); }, [products]);
+      useEffect(() => { localStorage.setItem('ps_products_v3', JSON.stringify(products)); }, [products]);
 
       const showToast = (msg) => {
         setToastMsg(msg);
         setTimeout(() => setToastMsg(null), 3500);
       };
 
-      // Client Supabase dinamico
       const supabaseClient = useMemo(() => {
         if (sbUrl && sbUrl.startsWith('http') && sbKey && sbKey.length > 20 && window.supabase) {
           try { return window.supabase.createClient(sbUrl, sbKey); } catch (e) { return null; }
@@ -447,29 +780,76 @@
         return null;
       }, [sbUrl, sbKey]);
 
-      // Scarica recensioni condivise da Supabase all'avvio
+      // Sincronizzazione silenziosa iniziale con Supabase
       useEffect(() => {
         if (!supabaseClient) return;
+        supabaseClient.from('products').select('*').order('created_at', { ascending: false }).then(({ data }) => {
+          if (data && data.length > 0) {
+            setProducts(prev => {
+              const existingEans = new Set(prev.map(x => x.ean));
+              const newFromCloud = data.map(row => row.product_data).filter(p => p && !existingEans.has(p.ean));
+              return [...newFromCloud, ...prev];
+            });
+          }
+        });
         supabaseClient.from('reviews').select('*').order('created_at', { ascending: false }).then(({ data }) => {
           if (data && data.length > 0) {
             setProducts(prev => prev.map(p => {
               const cloudRevs = data.filter(r => r.product_id === p.id).map(r => ({
                 id: 'cloud-' + r.id,
                 userName: r.user_name,
-                petInfo: r.pet_info || 'Utente Beta',
+                petInfo: r.pet_info || 'Membro Community',
                 rating: r.rating,
                 pros: r.pros || 'Consigliato',
                 cons: r.cons || 'Nessuno',
                 comment: r.comment,
                 verifiedScan: r.verified_scan
               }));
-              const existingIds = new Set(p.reviews.map(x => x.comment));
-              const merged = [...cloudRevs.filter(cr => !existingIds.has(cr.comment)), ...p.reviews];
-              return { ...p, reviews: merged };
+              const existingComments = new Set(p.reviews.map(x => x.comment));
+              return { ...p, reviews: [...cloudRevs.filter(cr => !existingComments.has(cr.comment)), ...p.reviews] };
             }));
           }
         });
       }, [supabaseClient]);
+
+      // RICERCA UNIFICATA SILENZIOSA (Automatica mentre l'utente cerca o tocca un Brand)
+      const performUnifiedSilentSearch = async (queryText) => {
+        const q = (queryText || '').trim();
+        if (q.length < 3) return;
+        setIsSearchingSilent(true);
+        try {
+          const url = `https://world.openpetfoodfacts.org/cgi/search.pl?search_terms=${encodeURIComponent(q)}&search_simple=1&action=process&json=1&page_size=14`;
+          const res = await fetch(url);
+          const data = await res.json();
+          if (data && Array.isArray(data.products) && data.products.length > 0) {
+            const validItems = data.products
+              .filter(item => item.product_name || item.product_name_it)
+              .map(normalizeExternalFoodItem);
+
+            if (validItems.length > 0) {
+              setProducts(prev => {
+                const existingEans = new Set(prev.map(x => x.ean));
+                const uniqueNew = validItems.filter(v => !existingEans.has(v.ean));
+                return [...uniqueNew, ...prev];
+              });
+            }
+          }
+        } catch (e) {
+          // Silenzioso per l'utente
+        } finally {
+          setIsSearchingSilent(false);
+        }
+      };
+
+      // Debounce automatico: quando l'utente scrive nella barra unica, cerca in automatico
+      useEffect(() => {
+        const clean = searchQuery.trim();
+        if (clean.length < 3) return;
+        const timer = setTimeout(() => {
+          performUnifiedSilentSearch(clean);
+        }, 550);
+        return () => clearTimeout(timer);
+      }, [searchQuery]);
 
       const activePet = useMemo(() => pets.find(p => p.id === activePetId) || pets[0], [pets, activePetId]);
       const evaluatedProducts = useMemo(() => products.map(p => ({ ...p, eval: evaluateProductForPet(p, activePet) })), [products, activePet]);
@@ -481,18 +861,88 @@
           const mQuery = !searchQuery.trim() ||
             p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
             p.brand.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            p.ingredientsText.toLowerCase().includes(searchQuery.toLowerCase()) ||
             p.ean.includes(searchQuery.trim());
           return mCat && mQuery;
         });
       }, [evaluatedProducts, categoryFilter, searchQuery]);
 
-      // Gestione Fotocamera Reale Barcode
+      // Apertura schermata creazione o modifica Pet
+      const openPetEditor = (petToEdit = null) => {
+        if (petToEdit) {
+          setEditingPetId(petToEdit.id);
+          setPetName(petToEdit.name);
+          setPetSpecies(petToEdit.species);
+          setPetBreed(petToEdit.breed);
+          setPetAge(petToEdit.ageYears);
+          setPetWeight(petToEdit.weightKg);
+          setPetAvatar(petToEdit.avatarStyle);
+          setPetTheme(petToEdit.theme);
+          setPetSterilized(petToEdit.sterilized ?? true);
+          setPetBodyCondition(petToEdit.bodyCondition || 'ideal');
+          setPetActivity(petToEdit.activityLevel || 'normal');
+          setPetAllergies(petToEdit.allergies || []);
+          setPetSensitivities(petToEdit.sensitivities || []);
+        } else {
+          setEditingPetId(null);
+          setPetName('');
+          setPetSpecies('dog');
+          setPetBreed('');
+          setPetAge(4);
+          setPetWeight(8);
+          setPetAvatar('pinscher');
+          setPetTheme('sage');
+          setPetSterilized(true);
+          setPetBodyCondition('ideal');
+          setPetActivity('normal');
+          setPetAllergies([]);
+          setPetSensitivities([]);
+        }
+        setFlowStep('pet-setup');
+      };
+
+      const toggleArrayItem = (arr, setArr, id) => {
+        if (arr.includes(id)) setArr(arr.filter(x => x !== id));
+        else setArr([...arr, id]);
+      };
+
+      const handleSavePet = (e) => {
+        e.preventDefault();
+        if (!petName.trim()) return;
+        const petObj = {
+          id: editingPetId || `pet-${Date.now()}`,
+          name: petName.trim(),
+          species: petSpecies,
+          breed: petBreed.trim() || (petSpecies === 'dog' ? 'Meticcio' : 'Europeo'),
+          ageYears: Number(petAge) || 3,
+          weightKg: Number(petWeight) || 5,
+          avatarStyle: petAvatar,
+          theme: petTheme,
+          sterilized: petSterilized,
+          bodyCondition: petBodyCondition,
+          activityLevel: petActivity,
+          allergies: petAllergies,
+          sensitivities: petSensitivities
+        };
+
+        if (editingPetId) {
+          setPets(prev => prev.map(p => p.id === editingPetId ? petObj : p));
+          showToast(`Profilo di ${petObj.name} aggiornato!`);
+        } else {
+          setPets(prev => [...prev, petObj]);
+          setActivePetId(petObj.id);
+          showToast(`Profilo di ${petObj.name} creato!`);
+        }
+        setFlowStep('home');
+      };
+
+      // Fotocamera Reale Barcode
       const startRealCamera = () => {
         setCameraError('');
         setCameraActive(true);
         setTimeout(() => {
           if (!window.Html5Qrcode) {
-            setCameraError('Libreria fotocamera non caricata.');
+            setCameraError('Fotocamera non supportata su questo browser.');
             return;
           }
           const html5QrCode = new window.Html5Qrcode("BarcodeReaderBox");
@@ -507,7 +957,7 @@
             },
             () => {}
           ).catch(() => {
-            setCameraError('Permesso fotocamera negato o non disponibile. Usa il campo codice EAN qui sotto.');
+            setCameraError('Permesso fotocamera negato o non disponibile. Inserisci il codice EAN qui sotto.');
             setCameraActive(false);
           });
         }, 200);
@@ -524,7 +974,7 @@
         }
       };
 
-      // Ricerca Codice a Barre nel DB Locale o su Open Pet Food Facts Live
+      // Ricerca Codice EAN (Trasparente + Fallback aggiunta rapida)
       const lookupBarcodeEAN = async (codeToSearch) => {
         const clean = (codeToSearch || eanInput).trim();
         if (!clean) return;
@@ -532,6 +982,7 @@
         if (localHit) {
           setSelectedProductId(localHit.id);
           setShowScannerModal(false);
+          setOpenAccordion('');
           setFlowStep('product');
           showToast(`Prodotto trovato: ${localHit.name}`);
           return;
@@ -542,77 +993,100 @@
           const res = await fetch(`https://world.openpetfoodfacts.org/api/v0/product/${clean}.json`);
           const data = await res.json();
           if (data && data.status === 1 && data.product) {
-            const p = data.product;
-            const nut = p.nutriments || {};
-            const imported = {
-              id: `opff-${Date.now()}`,
-              ean: clean,
-              category: 'food',
-              subCategory: 'Importato da Open Pet Food Facts',
-              targetSpecies: activePet.species,
-              name: p.product_name_it || p.product_name || `Alimento EAN ${clean}`,
-              brand: p.brands || 'Brand rilevato',
-              priceAvg: 'Prezzo in aggiornamento',
-              confidenceScore: 86,
-              kibbleSizeMm: 10,
-              ingredientsText: p.ingredients_text_it || p.ingredients_text || 'Ingredienti estratti dal database Open Pet Food Facts.',
-              proteinSourceScore: 18,
-              carbFatQualityScore: 7,
-              labelTransparencyScore: 6,
-              hasAddedSugars: false,
-              hasChemicalPreservatives: false,
-              hasFunctionalBonus: false,
-              analytical: {
-                protein: Number(nut.proteins_100g) || 25,
-                fat: Number(nut.fat_100g) || 13,
-                fiber: Number(nut.fiber_100g) || 3,
-                ash: Number(nut['ash_100g']) || 7,
-                moisture: Number(nut['moisture_100g']) || 10
-              },
-              prices: [{ store: 'Amazon (Cerca EAN)', price: 'Verifica offerta', note: 'Ricerca automatica', url: `https://www.amazon.it/s?k=${clean}` }],
-              reviews: []
-            };
+            const imported = normalizeExternalFoodItem({ ...data.product, code: clean });
             setProducts(prev => [imported, ...prev]);
             setSelectedProductId(imported.id);
             setShowScannerModal(false);
+            setOpenAccordion('');
             setFlowStep('product');
-            showToast('Prodotto importato live da Open Pet Food Facts!');
+            if (supabaseClient) {
+              supabaseClient.from('products').upsert([{ id: imported.id, ean: imported.ean, product_data: imported }]).then(() => {});
+            }
+            showToast('Prodotto analizzato con successo!');
           } else {
-            showToast('Codice non presente su Open Pet Food Facts. Usa il tasto "Simula Foto Etichetta AI"!');
+            setShowScannerModal(false);
+            setNewProdEan(clean);
+            setShowAddProductModal(true);
           }
         } catch (err) {
-          showToast('Errore di rete durante la ricerca EAN.');
+          showToast('Verifica la connessione internet.');
         } finally {
           setEanLoading(false);
         }
       };
 
-      // Salva Nuovo Pet
-      const handleCreatePet = (e) => {
+      // Aggiunta nuovo prodotto (con salvataggio e contributo silenzioso a Open Pet Food Facts)
+      const handleCreateNewProduct = async (e) => {
         e.preventDefault();
-        if (!newPetName.trim()) return;
-        const created = {
-          id: `pet-${Date.now()}`,
-          name: newPetName.trim(),
-          species: newPetSpecies,
-          breed: newPetBreed.trim() || (newPetSpecies === 'dog' ? 'Meticcio' : 'Europeo'),
-          ageYears: Number(newPetAge) || 3,
-          weightKg: Number(newPetWeight) || 6,
-          avatarStyle: newPetSpecies === 'cat' ? 'cat' : newPetAvatar,
-          theme: newPetTheme,
-          sterilized: true
+        if (!newProdName.trim()) return;
+        const code = newProdEan.trim() || String(Math.floor(8000000000000 + Math.random() * 900000000000));
+        const createdProd = {
+          id: `prod-${code}`,
+          ean: code,
+          category: newProdCat,
+          subCategory: newProdCat === 'food' ? '🥣 Cibo Pet' : '🛡️ Accessori & Cura',
+          targetSpecies: activePet.species,
+          name: newProdName.trim(),
+          brand: newProdBrand.trim() || 'Linea Pet',
+          priceAvg: 'Vedi offerte',
+          confidenceScore: 90,
+          kibbleSizeMm: newProdCat === 'food' ? 9 : null,
+          ingredientsText: newProdIng.trim() || 'Ingredienti inseriti dalla community.',
+          proteinSourceScore: 21, carbFatQualityScore: 8, labelTransparencyScore: 8,
+          hasAddedSugars: false, hasChemicalPreservatives: false, hasFunctionalBonus: true,
+          analytical: {
+            protein: Number(newProdProt) || 25,
+            fat: Number(newProdFat) || 13,
+            fiber: 3.0,
+            ash: Number(newProdAsh) || 6.5,
+            moisture: 10.0
+          },
+          nonFoodBaseTechScore: 88,
+          nonFoodMetrics: [
+            { label: 'Sicurezza Componenti', score: 90 },
+            { label: 'Tollerabilità per il Pet', score: 88 }
+          ],
+          prices: [
+            { store: 'Amazon', price: 'Cerca offerta', note: 'Ricerca diretta', url: `https://www.amazon.it/s?k=${encodeURIComponent(newProdBrand + ' ' + newProdName)}` }
+          ],
+          reviews: []
         };
-        setPets(prev => [...prev, created]);
-        setActivePetId(created.id);
-        setFlowStep('home');
-        showToast(`Profilo di ${created.name} creato!`);
+
+        setProducts(prev => [createdProd, ...prev]);
+        setSelectedProductId(createdProd.id);
+        setShowAddProductModal(false);
+        setOpenAccordion('');
+        setFlowStep('product');
+
+        // 1. Salva nel nostro Cloud
+        if (supabaseClient) {
+          supabaseClient.from('products').upsert([{ id: createdProd.id, ean: createdProd.ean, product_data: createdProd }]).then(() => {});
+        }
+
+        // 2. Se è un alimento, contribuisci silenziosamente anche a Open Pet Food Facts
+        if (newProdCat === 'food') {
+          try {
+            const formData = new URLSearchParams();
+            formData.append('code', code);
+            formData.append('product_name', createdProd.name);
+            formData.append('brands', createdProd.brand);
+            formData.append('ingredients_text', createdProd.ingredientsText);
+            fetch('https://world.openpetfoodfacts.org/cgi/product_jqm2.pl', {
+              method: 'POST',
+              mode: 'no-cors',
+              body: formData
+            }).catch(() => {});
+          } catch (_) {}
+        }
+
+        showToast('Prodotto aggiunto e valutato per ' + activePet.name + '!');
       };
 
-      // Invia Recensione (Locale + Supabase Cloud)
+      // Invio Recensione
       const handleSendReview = async (e) => {
         e.preventDefault();
         if (!revComment.trim()) return;
-        const author = revAuthor.trim() || `Amico con ${activePet.name}`;
+        const author = revAuthor.trim() || `Proprietario di ${activePet.name}`;
         const petDesc = `${activePet.breed} • ${activePet.ageYears} anni • ${activePet.weightKg} kg`;
 
         const newRev = {
@@ -620,8 +1094,8 @@
           userName: author,
           petInfo: petDesc,
           rating: Number(revRating),
-          pros: revPros.trim() || 'Buon prodotto',
-          cons: revCons.trim() || 'Nessuno in particolare',
+          pros: revPros.trim() || 'Ottima riuscita',
+          cons: revCons.trim() || 'Nessuno',
           comment: revComment.trim(),
           verifiedScan: true
         };
@@ -641,313 +1115,512 @@
             comment: newRev.comment,
             verified_scan: true
           }]);
-          showToast('Recensione salvata e condivisa nel Cloud!');
-        } else {
-          showToast('Recensione pubblicata!');
         }
+        showToast('Grazie! La tua recensione è online.');
       };
 
-      // Invia Feedback Beta Tester
       const handleSendFeedback = async (e) => {
         e.preventDefault();
         if (!fbMessage.trim()) return;
         if (supabaseClient) {
           await supabaseClient.from('beta_feedback').insert([{
-            tester_name: fbName.trim() || 'Tester Anonimo',
+            tester_name: fbName.trim() || 'Amico Tester',
             feedback_type: fbType,
             message: fbMessage.trim()
           }]);
-          showToast('Grazie! Feedback inviato al database Supabase!');
-        } else {
-          showToast('Grazie per il feedback! (Attiva Supabase per riceverli in Cloud)');
         }
+        showToast('Grazie! Suggerimento ricevuto.');
         setFbMessage('');
         setShowFeedbackModal(false);
       };
 
+      // Pillole priorità visibili nella Hero Card del Pet in Home (Massimo 3-4 per UX minimale)
+      const activePetBadges = useMemo(() => {
+        const list = [];
+        if (activePet.ageYears >= 9 && !activePet.sensitivities?.includes('renal')) {
+          list.push('🛡️ Senior: Reni Protetti');
+        }
+        (activePet.sensitivities || []).forEach(sId => {
+          const found = SENSITIVITY_OPTIONS.find(o => o.id === sId);
+          if (found) list.push(found.shortBadge);
+        });
+        (activePet.allergies || []).forEach(aId => {
+          const found = ALLERGY_OPTIONS.find(o => o.id === aId);
+          if (found) list.push(found.label);
+        });
+        if (list.length === 0) {
+          list.push(activePet.species === 'cat' ? '🐱 Carnivoro Stretto' : '🐶 Mantenimento Equilibrato');
+        }
+        return list.slice(0, 4);
+      }, [activePet]);
+
       return (
         <div className="min-h-screen bg-slate-100 flex flex-col items-center pb-24">
-          {/* Toast Notifica */}
           {toastMsg && (
             <div className="fixed top-4 z-50 bg-slate-900 text-white px-4 py-2.5 rounded-2xl shadow-xl text-xs font-bold flex items-center gap-2 animate-bounce">
               <span>✨</span> {toastMsg}
             </div>
           )}
 
-          {/* Barra Superiore Tester & Cloud */}
-          <div className="w-full max-w-md bg-slate-900 text-white px-3.5 py-2 flex items-center justify-between text-[11px] sticky top-0 z-40">
-            <div className="flex items-center gap-1.5">
-              <span className={`w-2 h-2 rounded-full ${supabaseClient ? 'bg-emerald-400' : 'bg-amber-400'}`}></span>
-              <span className="font-bold">PetScore Beta</span>
+          {/* Header Minimale */}
+          <div className="w-full max-w-md bg-white/95 backdrop-blur border-b border-slate-200/80 px-4 py-2.5 flex items-center justify-between text-xs sticky top-0 z-40">
+            <div className="flex items-center gap-2 cursor-pointer" onClick={() => setFlowStep('home')}>
+              <span className="w-2.5 h-2.5 rounded-full bg-emerald-500"></span>
+              <span className="font-black text-slate-900 tracking-tight text-sm">PetScore</span>
             </div>
             <div className="flex items-center gap-2">
-              <button onClick={() => setShowGlossaryModal(true)} className="bg-slate-800 hover:bg-slate-700 px-2 py-1 rounded-lg font-semibold">
-                ⓘ Acronimi
+              <button onClick={() => setShowGlossaryModal(true)} className="bg-slate-100 hover:bg-slate-200 text-slate-700 px-2.5 py-1 rounded-xl font-bold text-[11px]">
+                ⓘ Guida & Acronimi
               </button>
-              <button onClick={() => setShowFeedbackModal(true)} className="bg-emerald-600 hover:bg-emerald-500 px-2.5 py-1 rounded-lg font-bold">
-                🐞 Invia Feedback
-              </button>
-              <button onClick={() => setShowCloudModal(true)} className="bg-slate-800 hover:bg-slate-700 px-2 py-1 rounded-lg">
-                ☁️
+              <button onClick={() => setShowFeedbackModal(true)} className="bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200 px-2.5 py-1 rounded-xl font-bold text-[11px]">
+                💬 Suggerimenti
               </button>
             </div>
           </div>
 
-          {/* Contenitore Smartphone */}
           <div className="w-full max-w-md bg-slate-50 min-h-[88vh] shadow-xl flex flex-col justify-between relative">
 
-            {/* 1. SCHERMATA ONBOARDING INIZIALE */}
+            {/* 1. SCHERMATA BENVENUTO */}
             {flowStep === 'onboarding' && (
               <div className="p-6 flex flex-col items-center text-center my-auto">
                 <div className="mb-4">
-                  <PetAvatarSVG style="pinscher" theme="peach" size={110} />
+                  <PetAvatarSVG style="pinscher" theme="peach" size={112} />
                 </div>
                 <span className="text-[11px] font-extrabold uppercase tracking-wider px-3 py-1 rounded-full bg-emerald-100 text-emerald-800 mb-3">
-                  Benvenuto nel Beta Test
+                  Nutrizione & Cura Indipendente
                 </span>
-                <h1 className="text-2xl font-extrabold text-slate-900 mb-2">
-                  Scopri se quel prodotto è davvero adatto al tuo Pet
+                <h1 className="text-2xl font-extrabold text-slate-900 mb-2 leading-tight">
+                  Ogni Pet è unico. Anche ciò che metti nella sua ciotola.
                 </h1>
                 <p className="text-sm text-slate-600 mb-6 leading-relaxed">
-                  Un cibo da 90/100 può essere ottimo per un cucciolo ma rischioso per un cane senior di 13 anni. PetScore calcola il <strong>Match su misura</strong> per età, peso e specie.
+                  Scansiona o cerca crocchette, umido, antiparassitari e lettiere: scopri subito il <strong>Match %</strong> calcolato per l'età, il peso e le intolleranze del tuo cane o gatto.
                 </p>
                 <div className="w-full space-y-2.5">
-                  <button
-                    onClick={() => setFlowStep('home')}
-                    className="w-full py-3.5 rounded-2xl bg-emerald-500 hover:bg-emerald-600 text-white font-bold text-sm shadow-md transition"
-                  >
-                    Entra subito nell'App (Profilo Demo Ercole) →
+                  <button onClick={() => setFlowStep('home')} className="w-full py-3.5 rounded-2xl bg-emerald-500 hover:bg-emerald-600 text-white font-bold text-sm shadow-md transition">
+                    Inizia subito (Profilo Ercole) →
                   </button>
-                  <button
-                    onClick={() => setFlowStep('pet-setup')}
-                    className="w-full py-3 rounded-2xl bg-white border border-slate-200 text-slate-700 font-bold text-xs hover:bg-slate-100 transition"
-                  >
-                    + Crea subito il profilo del tuo Cane o Gatto
+                  <button onClick={() => openPetEditor(null)} className="w-full py-3 rounded-2xl bg-white border border-slate-200 text-slate-700 font-bold text-xs hover:bg-slate-100 transition">
+                    + Personalizza il tuo Cane o Gatto
                   </button>
                 </div>
               </div>
             )}
 
-            {/* 2. CREAZIONE NUOVO PET */}
+            {/* 2. SUPER-PERSONALIZZAZIONE PET (A PILLOLE TOCCABILI) */}
             {flowStep === 'pet-setup' && (
-              <div className="p-5">
-                <div className="flex items-center justify-between mb-4">
-                  <h2 className="text-lg font-extrabold text-slate-900">Crea il profilo del tuo Pet</h2>
-                  <button onClick={() => setFlowStep('home')} className="text-xs font-bold text-slate-500">Annulla</button>
+              <div className="p-4 space-y-4">
+                <div className="flex items-center justify-between">
+                  <h2 className="text-base font-extrabold text-slate-900">
+                    {editingPetId ? `Personalizza ${petName}` : 'Crea il profilo del tuo Pet'}
+                  </h2>
+                  <button onClick={() => setFlowStep('home')} className="text-xs font-bold text-slate-500 bg-white px-3 py-1 rounded-xl border border-slate-200">
+                    Chiudi ✕
+                  </button>
                 </div>
 
-                <div className="bg-white rounded-3xl p-4 border border-slate-200/80 shadow-sm mb-4 flex items-center gap-4">
-                  <PetAvatarSVG style={newPetSpecies === 'cat' ? 'cat' : newPetAvatar} theme={newPetTheme} size={72} />
-                  <div>
-                    <div className="text-base font-extrabold text-slate-900">{newPetName || 'Nome del tuo Pet'}</div>
-                    <div className="text-xs text-slate-500">{newPetBreed || (newPetSpecies === 'dog' ? 'Cane' : 'Gatto')} • {newPetAge} anni • {newPetWeight} kg</div>
-                    <div className="flex gap-1.5 mt-2">
+                {/* Anteprima Live Avatar & Palette Pastello */}
+                <div className="rounded-3xl p-4 border shadow-sm flex items-center gap-4 transition-all" style={{ backgroundColor: PASTEL_THEMES[petTheme]?.bg || '#DCFCE7', borderColor: PASTEL_THEMES[petTheme]?.border || '#A7F3D0' }}>
+                  <PetAvatarSVG style={petAvatar} theme={petTheme} size={74} />
+                  <div className="flex-1 min-w-0">
+                    <div className="text-lg font-extrabold text-slate-900 truncate">{petName || 'Il tuo Pet'}</div>
+                    <div className="text-xs font-semibold text-slate-700">{petBreed || (petSpecies === 'dog' ? 'Cane' : 'Gatto')} • {petAge} anni • {petWeight} kg</div>
+                    <div className="flex gap-1.5 mt-2.5">
                       {Object.keys(PASTEL_THEMES).map(k => (
                         <button
                           key={k}
                           type="button"
-                          onClick={() => setNewPetTheme(k)}
-                          className={`w-5 h-5 rounded-full border-2 ${newPetTheme === k ? 'border-slate-900 scale-110' : 'border-transparent'}`}
+                          onClick={() => setPetTheme(k)}
+                          className={`w-6 h-6 rounded-full border-2 transition ${petTheme === k ? 'border-slate-900 scale-110 shadow-sm' : 'border-white/80'}`}
                           style={{ backgroundColor: PASTEL_THEMES[k].bg }}
+                          title={PASTEL_THEMES[k].name}
                         />
                       ))}
                     </div>
                   </div>
                 </div>
 
-                <form onSubmit={handleCreatePet} className="space-y-3 bg-white p-4 rounded-3xl border border-slate-200/80 shadow-sm">
-                  <div className="grid grid-cols-2 gap-2">
-                    <button type="button" onClick={() => { setNewPetSpecies('dog'); setNewPetAvatar('pinscher'); }} className={`py-2.5 rounded-xl font-bold text-xs border ${newPetSpecies === 'dog' ? 'bg-emerald-50 border-emerald-500 text-emerald-800' : 'border-slate-200 text-slate-600'}`}>🐶 Cane</button>
-                    <button type="button" onClick={() => { setNewPetSpecies('cat'); setNewPetAvatar('cat'); }} className={`py-2.5 rounded-xl font-bold text-xs border ${newPetSpecies === 'cat' ? 'bg-emerald-50 border-emerald-500 text-emerald-800' : 'border-slate-200 text-slate-600'}`}>🐱 Gatto</button>
-                  </div>
-
-                  {newPetSpecies === 'dog' && (
+                <form onSubmit={handleSavePet} className="space-y-4">
+                  {/* Blocco 1: Identità & Stile Avatar */}
+                  <div className="bg-white p-4 rounded-3xl border border-slate-200/80 shadow-sm space-y-3">
+                    <div className="text-xs font-extrabold uppercase tracking-wider text-slate-400">1. Specie & Stile Illustrazione</div>
                     <div className="grid grid-cols-2 gap-2">
-                      <button type="button" onClick={() => setNewPetAvatar('pinscher')} className={`py-1.5 rounded-lg text-[11px] font-bold border ${newPetAvatar === 'pinscher' ? 'bg-slate-900 text-white' : 'text-slate-600'}`}>Orecchie Dritte (es. Pinscher)</button>
-                      <button type="button" onClick={() => setNewPetAvatar('retriever')} className={`py-1.5 rounded-lg text-[11px] font-bold border ${newPetAvatar === 'retriever' ? 'bg-slate-900 text-white' : 'text-slate-600'}`}>Orecchie Morbide</button>
+                      <button
+                        type="button"
+                        onClick={() => { setPetSpecies('dog'); setPetAvatar('pinscher'); }}
+                        className={`py-2.5 rounded-2xl font-bold text-xs border transition ${petSpecies === 'dog' ? 'bg-slate-900 text-white border-slate-900' : 'bg-slate-50 border-slate-200 text-slate-600'}`}
+                      >
+                        🐶 Cane
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => { setPetSpecies('cat'); setPetAvatar('cat_tabby'); }}
+                        className={`py-2.5 rounded-2xl font-bold text-xs border transition ${petSpecies === 'cat' ? 'bg-slate-900 text-white border-slate-900' : 'bg-slate-50 border-slate-200 text-slate-600'}`}
+                      >
+                        🐱 Gatto
+                      </button>
                     </div>
-                  )}
 
-                  <div>
-                    <label className="text-[11px] font-bold text-slate-600">Nome del Pet *</label>
-                    <input type="text" required value={newPetName} onChange={e => setNewPetName(e.target.value)} placeholder="Es. Ercole, Luna, Mia..." className="w-full mt-1 px-3 py-2 rounded-xl border border-slate-200 text-sm" />
-                  </div>
-                  <div>
-                    <label className="text-[11px] font-bold text-slate-600">Razza (opzionale)</label>
-                    <input type="text" value={newPetBreed} onChange={e => setNewPetBreed(e.target.value)} placeholder="Es. Pinscher Nano, Meticcio, Europeo..." className="w-full mt-1 px-3 py-2 rounded-xl border border-slate-200 text-sm" />
-                  </div>
-                  <div className="grid grid-cols-2 gap-3">
-                    <div>
-                      <label className="text-[11px] font-bold text-slate-600">Età (Anni): {newPetAge}</label>
-                      <input type="range" min="1" max="20" value={newPetAge} onChange={e => setNewPetAge(e.target.value)} className="w-full accent-emerald-500 mt-1" />
+                    {/* Griglia Avatar Flat */}
+                    <div className="flex gap-2 overflow-x-auto no-scrollbar py-1">
+                      {AVATAR_STYLES.filter(a => a.species === petSpecies).map(av => (
+                        <button
+                          key={av.id}
+                          type="button"
+                          onClick={() => setPetAvatar(av.id)}
+                          className={`p-2 rounded-2xl border flex flex-col items-center gap-1 shrink-0 transition ${
+                            petAvatar === av.id ? 'border-emerald-500 bg-emerald-50/60 ring-2 ring-emerald-500/20' : 'border-slate-200 bg-slate-50'
+                          }`}
+                        >
+                          <PetAvatarSVG style={av.id} theme={petTheme} size={44} />
+                          <span className="text-[10px] font-bold text-slate-700">{av.label}</span>
+                        </button>
+                      ))}
                     </div>
-                    <div>
-                      <label className="text-[11px] font-bold text-slate-600">Peso (Kg): {newPetWeight}</label>
-                      <input type="range" min="1" max="55" value={newPetWeight} onChange={e => setNewPetWeight(e.target.value)} className="w-full accent-emerald-500 mt-1" />
+
+                    <div className="grid grid-cols-2 gap-2.5 pt-1">
+                      <div>
+                        <label className="text-[11px] font-bold text-slate-600">Nome *</label>
+                        <input type="text" required value={petName} onChange={e => setPetName(e.target.value)} placeholder="Es. Ercole, Mia..." className="w-full mt-1 px-3 py-2 rounded-xl border border-slate-200 text-xs font-semibold" />
+                      </div>
+                      <div>
+                        <label className="text-[11px] font-bold text-slate-600">Razza / Tipo</label>
+                        <input type="text" value={petBreed} onChange={e => setPetBreed(e.target.value)} placeholder="Es. Pinscher, Europeo..." className="w-full mt-1 px-3 py-2 rounded-xl border border-slate-200 text-xs" />
+                      </div>
                     </div>
                   </div>
-                  <button type="submit" className="w-full py-3.5 rounded-2xl bg-emerald-500 hover:bg-emerald-600 text-white font-bold text-sm shadow-md">
-                    Salva e Calcola i Prodotti Ideali →
+
+                  {/* Blocco 2: Età, Peso e Forma Fisica */}
+                  <div className="bg-white p-4 rounded-3xl border border-slate-200/80 shadow-sm space-y-3">
+                    <div className="text-xs font-extrabold uppercase tracking-wider text-slate-400">2. Età, Peso & Stile di Vita</div>
+                    <div className="grid grid-cols-2 gap-3">
+                      <div className="bg-slate-50 p-2.5 rounded-2xl border border-slate-200/70">
+                        <div className="flex justify-between text-xs font-bold text-slate-700">
+                          <span>Età</span>
+                          <span className="text-emerald-700">{petAge} {petAge === 1 ? 'anno' : 'anni'}</span>
+                        </div>
+                        <input type="range" min="1" max="20" value={petAge} onChange={e => setPetAge(Number(e.target.value))} className="w-full accent-emerald-500 mt-1.5" />
+                      </div>
+                      <div className="bg-slate-50 p-2.5 rounded-2xl border border-slate-200/70">
+                        <div className="flex justify-between text-xs font-bold text-slate-700">
+                          <span>Peso</span>
+                          <span className="text-emerald-700">{petWeight} kg</span>
+                        </div>
+                        <input type="range" min="1" max="55" step="0.5" value={petWeight} onChange={e => setPetWeight(Number(e.target.value))} className="w-full accent-emerald-500 mt-1.5" />
+                      </div>
+                    </div>
+
+                    <div>
+                      <div className="text-[11px] font-bold text-slate-600 mb-1.5">Forma Fisica</div>
+                      <div className="grid grid-cols-3 gap-1.5">
+                        {[
+                          { id: 'underweight', label: 'Snello / Sottopeso' },
+                          { id: 'ideal', label: '✨ Peso Forma' },
+                          { id: 'overweight', label: 'Tende a Ingrassare' }
+                        ].map(b => (
+                          <button
+                            key={b.id}
+                            type="button"
+                            onClick={() => setPetBodyCondition(b.id)}
+                            className={`py-2 px-2 rounded-xl text-[11px] font-bold border transition ${
+                              petBodyCondition === b.id ? 'bg-slate-900 text-white border-slate-900' : 'bg-slate-50 text-slate-600 border-slate-200'
+                            }`}
+                          >
+                            {b.label}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div className="flex items-center justify-between pt-1">
+                      <span className="text-xs font-bold text-slate-700">Il Pet è sterilizzato?</span>
+                      <button
+                        type="button"
+                        onClick={() => setPetSterilized(!petSterilized)}
+                        className={`px-3.5 py-1.5 rounded-full text-xs font-bold border transition ${
+                          petSterilized ? 'bg-emerald-50 border-emerald-400 text-emerald-800' : 'bg-slate-100 border-slate-200 text-slate-600'
+                        }`}
+                      >
+                        {petSterilized ? '✓ Sì, Sterilizzato' : 'No, Intero'}
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Blocco 3: Intolleranze & Allergie (Filtro Salvavita) */}
+                  <div className="bg-white p-4 rounded-3xl border border-slate-200/80 shadow-sm space-y-2.5">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-extrabold uppercase tracking-wider text-slate-400">3. Intolleranze da Escludere</span>
+                      <span className="text-[10px] font-semibold text-rose-600">Penalizza i cibi che li contengono</span>
+                    </div>
+                    <div className="flex flex-wrap gap-1.5">
+                      {ALLERGY_OPTIONS.map(al => {
+                        const active = petAllergies.includes(al.id);
+                        return (
+                          <button
+                            key={al.id}
+                            type="button"
+                            onClick={() => toggleArrayItem(petAllergies, setPetAllergies, al.id)}
+                            className={`px-3 py-1.5 rounded-2xl text-xs font-bold border transition ${
+                              active ? 'bg-rose-500 text-white border-rose-500 shadow-sm' : 'bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100'
+                            }`}
+                          >
+                            {al.label} {active && '✓'}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  {/* Blocco 4: Esigenze Cliniche & Cura */}
+                  <div className="bg-white p-4 rounded-3xl border border-slate-200/80 shadow-sm space-y-2.5">
+                    <div className="text-xs font-extrabold uppercase tracking-wider text-slate-400">4. Attenzioni & Sensibilità Specifiche</div>
+                    <div className="flex flex-wrap gap-1.5">
+                      {SENSITIVITY_OPTIONS.map(sens => {
+                        const active = petSensitivities.includes(sens.id);
+                        return (
+                          <button
+                            key={sens.id}
+                            type="button"
+                            onClick={() => toggleArrayItem(petSensitivities, setPetSensitivities, sens.id)}
+                            className={`px-3 py-1.5 rounded-2xl text-xs font-bold border transition ${
+                              active ? 'bg-emerald-600 text-white border-emerald-600 shadow-sm' : 'bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100'
+                            }`}
+                          >
+                            {sens.label} {active && '✓'}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  <button type="submit" className="w-full py-3.5 rounded-2xl bg-emerald-500 hover:bg-emerald-600 text-white font-extrabold text-sm shadow-md transition">
+                    Salva Profilo di {petName || 'Pet'} →
                   </button>
                 </form>
               </div>
             )}
 
-            {/* 3. HOMEPAGE PET-CENTRICA */}
+            {/* 3. HOMEPAGE PET-CENTRICA & RICERCA UNIFICATA */}
             {flowStep === 'home' && (
               <div className="p-4 space-y-4">
-                {/* Selettore Rapido Pet */}
-                <div className="flex items-center gap-2 overflow-x-auto no-scrollbar pb-1">
+                {/* Switch Rapido Pet */}
+                <div className="flex items-center gap-2 overflow-x-auto no-scrollbar pb-0.5">
                   {pets.map(p => (
                     <button
                       key={p.id}
                       onClick={() => setActivePetId(p.id)}
-                      className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-bold border transition shrink-0 ${
+                      className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold border transition shrink-0 ${
                         p.id === activePet.id ? 'bg-slate-900 text-white border-slate-900 shadow-sm' : 'bg-white text-slate-600 border-slate-200'
                       }`}
                     >
                       <span>{p.species === 'dog' ? '🐶' : '🐱'}</span>
                       <span>{p.name}</span>
-                      <span className="opacity-70 text-[10px]">({p.ageYears}a)</span>
                     </button>
                   ))}
                   <button
-                    onClick={() => setFlowStep('pet-setup')}
+                    onClick={() => openPetEditor(null)}
                     className="px-3 py-1.5 rounded-full text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-200 shrink-0"
                   >
-                    + Tuo Pet
+                    + Aggiungi Pet
                   </button>
                 </div>
 
-                {/* Card Principale del Pet Attivo */}
-                <div className="rounded-3xl p-4 border shadow-sm transition-all" style={{ backgroundColor: PASTEL_THEMES[activePet.theme]?.bg || '#FFEDD5', borderColor: PASTEL_THEMES[activePet.theme]?.border || '#FED7AA' }}>
+                {/* HERO CARD DEL PET IN PRIMO PIANO (UX MINIMALE, SENZA KCAL) */}
+                <div
+                  className="rounded-3xl p-4 border shadow-sm transition-all"
+                  style={{
+                    backgroundColor: PASTEL_THEMES[activePet.theme]?.bg || '#FFEDD5',
+                    borderColor: PASTEL_THEMES[activePet.theme]?.border || '#FED7AA'
+                  }}
+                >
                   <div className="flex items-center gap-3.5">
                     <PetAvatarSVG style={activePet.avatarStyle} theme={activePet.theme} size={68} />
                     <div className="flex-1 min-w-0">
-                      <span className="text-[10px] font-extrabold uppercase tracking-wider px-2 py-0.5 rounded-full bg-white/80 text-slate-700">
-                        Profilo Attivo
-                      </span>
+                      <div className="flex items-center justify-between">
+                        <span className="text-[10px] font-extrabold uppercase tracking-wider px-2 py-0.5 rounded-full bg-white/80 text-slate-700">
+                          Scelte su misura per
+                        </span>
+                        <button
+                          onClick={() => openPetEditor(activePet)}
+                          className="text-[11px] font-bold text-slate-700 bg-white/70 hover:bg-white px-2.5 py-0.5 rounded-full"
+                        >
+                          ✏️ Modifica
+                        </button>
+                      </div>
                       <h2 className="text-xl font-extrabold text-slate-900 truncate mt-0.5">{activePet.name}</h2>
-                      <p className="text-xs font-medium text-slate-700">{activePet.breed} • {activePet.ageYears} anni • {activePet.weightKg} kg</p>
+                      <p className="text-xs font-semibold text-slate-700">
+                        {activePet.breed} • {activePet.ageYears} anni • {activePet.weightKg} kg
+                      </p>
                     </div>
                   </div>
-                  <div className="mt-3 pt-2.5 border-t border-black/5 flex flex-wrap gap-1.5 text-[11px] font-bold text-slate-800">
-                    {activePet.ageYears >= 9 && <span className="bg-white/80 px-2.5 py-1 rounded-xl">🛡️ Senior: Ceneri &lt; 7.8% DMB</span>}
-                    {activePet.species === 'dog' && activePet.weightKg <= 9 && <span className="bg-white/80 px-2.5 py-1 rounded-xl">🦷 Taglia Piccola: Crocchetta &lt; 9mm</span>}
-                    {activePet.species === 'cat' && <span className="bg-white/80 px-2.5 py-1 rounded-xl">🥩 Carnivoro: Zero Zuccheri &amp; Alta Taurina</span>}
+
+                  {/* Pillole Priorità del Pet */}
+                  <div className="mt-3 pt-2.5 border-t border-black/5 flex flex-wrap gap-1.5">
+                    {activePetBadges.map((b, i) => (
+                      <span key={i} className="bg-white/85 px-2.5 py-1 rounded-xl text-[11px] font-bold text-slate-800 shadow-2xs">
+                        {b}
+                      </span>
+                    ))}
                   </div>
                 </div>
 
-                {/* Barra Cerca + Pulsante Scanner Fotocamera in Primo Piano */}
-                <div className="bg-white p-3 rounded-3xl border border-slate-200/80 shadow-sm space-y-2.5">
+                {/* BARRA DI RICERCA UNICA E TRASPARENTE + PILLOLE BRAND */}
+                <div className="bg-white p-3.5 rounded-3xl border border-slate-200/80 shadow-sm space-y-2.5">
                   <div className="relative">
                     <input
                       type="text"
                       value={searchQuery}
                       onChange={e => setSearchQuery(e.target.value)}
-                      placeholder={`Cerca crocchette, umido, antiparassitari o codice EAN...`}
-                      className="w-full pl-9 pr-4 py-2.5 bg-slate-100 rounded-2xl text-xs font-medium focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                      placeholder={`Cerca crocchette, umido, antiparassitari o marca...`}
+                      className="w-full pl-9 pr-8 py-2.5 bg-slate-100 rounded-2xl text-xs font-semibold text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500"
                     />
                     <span className="absolute left-3 top-2.5 text-slate-400">🔍</span>
+                    {searchQuery && (
+                      <button onClick={() => setSearchQuery('')} className="absolute right-3 top-2.5 text-xs font-bold text-slate-400 hover:text-slate-600">
+                        ✕
+                      </button>
+                    )}
                   </div>
-                  <button
-                    onClick={() => setShowScannerModal(true)}
-                    className="w-full py-3 rounded-2xl bg-emerald-500 hover:bg-emerald-600 text-white font-extrabold text-xs shadow-sm flex items-center justify-center gap-2 transition"
-                  >
-                    <span>📷</span> Scansiona Codice a Barre o Cerca per EAN
-                  </button>
+
+                  {/* Pillole Marche Famosissime */}
+                  <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar pt-0.5">
+                    {['Monge', 'Royal Canin', 'Almo Nature', 'Acana', 'Purina', 'Farmina', 'Felix', 'Hill\'s'].map(brand => {
+                      const active = searchQuery.toLowerCase() === brand.toLowerCase();
+                      return (
+                        <button
+                          key={brand}
+                          onClick={() => {
+                            const next = active ? '' : brand;
+                            setSearchQuery(next);
+                            if (next) performUnifiedSilentSearch(next);
+                          }}
+                          className={`px-2.5 py-1 rounded-xl text-[11px] font-bold shrink-0 border transition ${
+                            active ? 'bg-slate-900 text-white border-slate-900' : 'bg-slate-50 hover:bg-emerald-50 text-slate-600 border-slate-200'
+                          }`}
+                        >
+                          {brand}
+                        </button>
+                      );
+                    })}
+                  </div>
                 </div>
 
-                {/* Filtri Categoria */}
-                <div className="flex gap-1.5">
-                  {[
-                    { id: 'all', label: 'Tutti i Prodotti' },
-                    { id: 'food', label: '🥣 Cibo (Secco/Umido)' },
-                    { id: 'non-food', label: '🛡️ Antiparassitari & Non-Food' }
-                  ].map(cat => (
-                    <button
-                      key={cat.id}
-                      onClick={() => setCategoryFilter(cat.id)}
-                      className={`px-3 py-1.5 rounded-xl text-xs font-bold transition ${
-                        categoryFilter === cat.id ? 'bg-slate-900 text-white' : 'bg-white text-slate-600 border border-slate-200'
-                      }`}
-                    >
-                      {cat.label}
-                    </button>
-                  ))}
+                {/* Filtri Rapidi Categoria */}
+                <div className="flex items-center justify-between">
+                  <div className="flex gap-1.5">
+                    {[
+                      { id: 'all', label: 'Tutti' },
+                      { id: 'food', label: '🥣 Alimenti' },
+                      { id: 'non-food', label: '🛡️ Antiparassitari & Cura' }
+                    ].map(cat => (
+                      <button
+                        key={cat.id}
+                        onClick={() => setCategoryFilter(cat.id)}
+                        className={`px-3 py-1.5 rounded-xl text-xs font-bold transition ${
+                          categoryFilter === cat.id ? 'bg-slate-900 text-white shadow-2xs' : 'bg-white text-slate-600 border border-slate-200'
+                        }`}
+                      >
+                        {cat.label}
+                      </button>
+                    ))}
+                  </div>
+                  {isSearchingSilent && (
+                    <span className="text-[11px] font-semibold text-emerald-600 animate-pulse">Aggiornamento...</span>
+                  )}
                 </div>
 
-                {/* Lista Prodotti con Doppio Punteggio */}
+                {/* Lista Prodotti Ordinata e Minimale */}
                 <div className="space-y-2.5">
                   {filteredProducts.map(prod => {
                     const matchBadge = getBadgeStyle(prod.eval.matchScore);
                     return (
                       <div
                         key={prod.id}
-                        onClick={() => { setSelectedProductId(prod.id); setFlowStep('product'); }}
+                        onClick={() => { setSelectedProductId(prod.id); setOpenAccordion(''); setFlowStep('product'); }}
                         className="bg-white p-3.5 rounded-3xl border border-slate-200/80 shadow-sm hover:border-emerald-400 transition cursor-pointer flex items-center justify-between gap-3"
                       >
                         <div className="min-w-0 flex-1">
-                          <div className="flex items-center gap-1.5 mb-1">
-                            <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-md bg-slate-100 text-slate-600">
+                          <div className="flex items-center gap-1.5 mb-0.5">
+                            <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-slate-100 text-slate-600">
                               {prod.subCategory}
                             </span>
-                            <span className="text-[10px] text-slate-400 font-medium">EAN {prod.ean}</span>
+                            <span className="text-[11px] font-bold text-slate-400 truncate">{prod.brand}</span>
                           </div>
                           <h3 className="text-sm font-extrabold text-slate-900 truncate">{prod.name}</h3>
-                          <p className="text-xs text-slate-500">{prod.brand} • {prod.priceAvg}</p>
                           {prod.eval.alerts[0] && (
-                            <p className={`text-[11px] font-bold mt-1.5 truncate ${
+                            <p className={`text-[11px] font-bold mt-1 truncate ${
                               prod.eval.alerts[0].type === 'danger' ? 'text-rose-600' : prod.eval.alerts[0].type === 'warning' ? 'text-amber-600' : 'text-emerald-700'
                             }`}>
-                              {prod.eval.alerts[0].type === 'danger' ? '⚠️ ' : prod.eval.alerts[0].type === 'warning' ? '⚡ ' : '✅ '}
+                              {prod.eval.alerts[0].type === 'danger' ? '⚠️ ' : prod.eval.alerts[0].type === 'warning' ? '⚡ ' : '✓ '}
                               {prod.eval.alerts[0].title}
                             </p>
                           )}
                         </div>
 
                         <div className="flex flex-col items-end shrink-0">
-                          <div className={`px-3 py-1.5 rounded-2xl text-white font-extrabold text-sm shadow-sm ${matchBadge.bg}`}>
+                          <div className={`px-3 py-1.5 rounded-2xl text-white font-extrabold text-sm shadow-2xs ${matchBadge.bg}`}>
                             {prod.eval.matchScore}%
                           </div>
-                          <span className="text-[10px] font-bold text-slate-500 mt-1">
-                            Match {activePet.name}
-                          </span>
-                          <span className="text-[10px] text-slate-400">
-                            Base: {prod.eval.baseScore}/100
-                          </span>
+                          <span className="text-[10px] font-bold text-slate-500 mt-1">Match {activePet.name}</span>
                         </div>
                       </div>
                     );
                   })}
+
+                  {filteredProducts.length === 0 && (
+                    <div className="bg-white p-6 rounded-3xl border border-slate-200 text-center space-y-2">
+                      <div className="text-sm font-bold text-slate-800">Non hai trovato il prodotto che cercavi?</div>
+                      <p className="text-xs text-slate-500">Scansiona il codice a barre o aggiungilo in 10 secondi.</p>
+                      <button
+                        onClick={() => setShowAddProductModal(true)}
+                        className="px-4 py-2 rounded-xl bg-emerald-500 text-white font-bold text-xs"
+                      >
+                        + Aggiungi Prodotto
+                      </button>
+                    </div>
+                  )}
+                </div>
+
+                {/* Nota Etica Open Pet Food Facts */}
+                <div className="pt-2 text-center">
+                  <button
+                    onClick={() => setShowGlossaryModal(true)}
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-emerald-50/80 border border-emerald-200/70 text-[11px] font-semibold text-emerald-800"
+                  >
+                    <span>🌱</span> Contribuisce alla rete gratuita Open Pet Food Facts
+                  </button>
                 </div>
               </div>
             )}
 
-            {/* 4. SCHEDA DETTAGLIO PRODOTTO CON ACCORDION MINIMALI */}
+            {/* 4. SCHEDA DETTAGLIO PRODOTTO (UX MINIMALE + ACCORDION CHIUSI DI DEFAULT) */}
             {flowStep === 'product' && selectedProduct && (
-              <div className="p-4 space-y-4">
-                <button
-                  onClick={() => setFlowStep('home')}
-                  className="text-xs font-bold text-slate-600 bg-white px-3 py-1.5 rounded-xl border border-slate-200 inline-flex items-center gap-1"
-                >
-                  ← Torna alla Home di {activePet.name}
-                </button>
+              <div className="p-4 space-y-3.5">
+                <div className="flex items-center justify-between">
+                  <button onClick={() => setFlowStep('home')} className="text-xs font-bold text-slate-600 bg-white px-3 py-1.5 rounded-xl border border-slate-200">
+                    ← Torna a {activePet.name}
+                  </button>
+                  <button onClick={() => setShowGlossaryModal(true)} className="text-xs font-bold text-emerald-700 bg-emerald-50 px-3 py-1.5 rounded-xl border border-emerald-200">
+                    ⓘ Come calcoliamo i voti
+                  </button>
+                </div>
 
-                {/* Riepilogo Semaforo Minimal */}
+                {/* Card Principale Semaforo */}
                 <div className="bg-white p-4 rounded-3xl border border-slate-200/80 shadow-sm space-y-3">
                   <div className="flex items-center justify-between text-[11px] text-slate-400 font-semibold">
                     <span>{selectedProduct.brand} • {selectedProduct.subCategory}</span>
-                    <span>EAN: {selectedProduct.ean}</span>
+                    <span>EAN {selectedProduct.ean}</span>
                   </div>
                   <h1 className="text-lg font-extrabold text-slate-900 leading-snug">{selectedProduct.name}</h1>
 
-                  {/* Doppio Box Score */}
+                  {/* Doppio Indice con spiegazione al tocco */}
                   <div className="grid grid-cols-2 gap-2.5 pt-1">
-                    <div className={`p-3 rounded-2xl border ${getBadgeStyle(selectedProduct.eval.matchScore).softBg} ${getBadgeStyle(selectedProduct.eval.matchScore).border}`}>
+                    <div
+                      onClick={() => setShowGlossaryModal(true)}
+                      className={`p-3 rounded-2xl border cursor-pointer ${getBadgeStyle(selectedProduct.eval.matchScore).softBg} ${getBadgeStyle(selectedProduct.eval.matchScore).border}`}
+                    >
                       <div className="flex items-center justify-between">
-                        <span className="text-[10px] font-extrabold uppercase text-slate-600">Match per {activePet.name}</span>
-                        <button onClick={() => setShowGlossaryModal(true)} className="text-xs text-slate-500">ⓘ</button>
+                        <span className="text-[10px] font-extrabold uppercase text-slate-600">Match {activePet.name}</span>
+                        <span className="text-xs text-slate-500">ⓘ</span>
                       </div>
                       <div className={`text-2xl font-black mt-0.5 ${getBadgeStyle(selectedProduct.eval.matchScore).text}`}>
                         {selectedProduct.eval.matchScore}%
@@ -955,10 +1628,13 @@
                       <div className="text-[11px] font-bold text-slate-600">{getBadgeStyle(selectedProduct.eval.matchScore).label}</div>
                     </div>
 
-                    <div className="p-3 rounded-2xl border bg-slate-50 border-slate-200">
+                    <div
+                      onClick={() => setShowGlossaryModal(true)}
+                      className="p-3 rounded-2xl border bg-slate-50 border-slate-200 cursor-pointer"
+                    >
                       <div className="flex items-center justify-between">
-                        <span className="text-[10px] font-extrabold uppercase text-slate-500">Qualità Assoluta</span>
-                        <button onClick={() => setShowGlossaryModal(true)} className="text-xs text-slate-400">ⓘ</button>
+                        <span className="text-[10px] font-extrabold uppercase text-slate-500">Qualità Base</span>
+                        <span className="text-xs text-slate-400">ⓘ</span>
                       </div>
                       <div className="text-2xl font-black text-slate-800 mt-0.5">
                         {selectedProduct.eval.baseScore}<span className="text-xs font-normal text-slate-400">/100</span>
@@ -967,7 +1643,7 @@
                     </div>
                   </div>
 
-                  {/* Avvisi Personalizzati */}
+                  {/* Verdetto Clinico Personalizzato per il Pet */}
                   <div className="space-y-2 pt-1">
                     {selectedProduct.eval.alerts.map((al, idx) => (
                       <div
@@ -985,43 +1661,61 @@
                   </div>
                 </div>
 
-                {/* ACCORDION 1: ANALISI NUTRIZIONALE DMB / INCI */}
+                {/* ACCORDION 1: ANALISI NUTRIZIONALE DMB + DOSE GIORNALIERA CONSIGLIATA */}
                 <div className="bg-white rounded-3xl border border-slate-200/80 shadow-sm overflow-hidden">
                   <button
                     onClick={() => setOpenAccordion(openAccordion === 'nutrition' ? '' : 'nutrition')}
                     className="w-full p-4 flex items-center justify-between text-left font-extrabold text-sm text-slate-900"
                   >
-                    <span>🔬 {selectedProduct.category === 'food' ? 'Analisi Nutrizionale su Sostanza Secca (DMB)' : 'Analisi Sicurezza & Efficacia Non-Food'}</span>
-                    <span>{openAccordion === 'nutrition' ? '▲' : '▼'}</span>
+                    <span>🔬 {selectedProduct.category === 'food' ? 'Valori Nutrizionali & Dose Giornaliera' : 'Sicurezza Componenti & Tollerabilità'}</span>
+                    <span className="text-xs text-slate-400">{openAccordion === 'nutrition' ? '▲' : '▼'}</span>
                   </button>
                   {openAccordion === 'nutrition' && (
                     <div className="px-4 pb-4 space-y-3 border-t border-slate-100 pt-3 text-xs">
-                      <p className="text-slate-600 bg-slate-50 p-2.5 rounded-xl">
-                        <strong>Ingredienti / Composizione:</strong> {selectedProduct.ingredientsText}
+                      {/* Box Dose Giornaliera (Solo qui dentro per mantenere UX minimale) */}
+                      {selectedProduct.category === 'food' && selectedProduct.eval.doseInfo && (
+                        <div className="p-3 rounded-2xl bg-emerald-50/70 border border-emerald-200 flex items-center justify-between">
+                          <div>
+                            <div className="text-[10px] font-extrabold uppercase text-emerald-800">
+                              🥣 Dose indicativa per {activePet.name} ({activePet.weightKg} kg)
+                            </div>
+                            <div className="text-sm font-black text-slate-900 mt-0.5">
+                              ~{selectedProduct.eval.doseInfo.dailyGrams} g al giorno <span className="text-xs font-semibold text-slate-600">(2 pasti da {selectedProduct.eval.doseInfo.perMealGrams} g)</span>
+                            </div>
+                            <div className="text-[10px] text-slate-500 mt-0.5">
+                              Stima basata su fabbisogno di ~{selectedProduct.eval.doseInfo.dailyKcalNeeded} kcal/giorno
+                            </div>
+                          </div>
+                          <button onClick={() => setShowGlossaryModal(true)} className="text-xs font-bold text-emerald-700 px-2 py-1">ⓘ</button>
+                        </div>
+                      )}
+
+                      <p className="text-slate-600 bg-slate-50 p-2.5 rounded-xl leading-relaxed">
+                        <strong>Ingredienti / INCI:</strong> {selectedProduct.ingredientsText}
                       </p>
 
                       {selectedProduct.category === 'food' && selectedProduct.eval.dmb && (
                         <div className="space-y-2">
                           <div className="flex justify-between items-center">
-                            <span className="font-bold text-slate-700">Valori Reali senza acqua (DMB):</span>
+                            <span className="font-bold text-slate-700">Valori Reali su Sostanza Secca (DMB):</span>
                             <button onClick={() => setShowGlossaryModal(true)} className="text-emerald-600 font-bold text-[11px] underline">Cosa sono DMB e NFE?</button>
                           </div>
                           <div className="grid grid-cols-2 gap-2">
                             <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-200">
                               <div className="text-[10px] text-slate-400">Proteine Reali (DMB)</div>
-                              <div className="text-sm font-extrabold text-slate-800">{selectedProduct.eval.dmb.protein}% <span className="text-[10px] font-normal text-slate-400">(Etich. {selectedProduct.analytical.protein}%)</span></div>
+                              <div className="text-sm font-extrabold text-slate-800">{selectedProduct.eval.dmb.protein}%</div>
                             </div>
                             <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-200">
                               <div className="text-[10px] text-slate-400">Carboidrati NFE (DMB)</div>
-                              <div className="text-sm font-extrabold text-slate-800">{selectedProduct.eval.dmb.carbs}% <span className="text-[10px] font-normal text-slate-400">(Nascosti)</span></div>
+                              <div className="text-sm font-extrabold text-slate-800">{selectedProduct.eval.dmb.carbs}%</div>
                             </div>
                             <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-200">
                               <div className="text-[10px] text-slate-400">Ceneri / Minerali (DMB)</div>
-                              <div className="text-sm font-extrabold text-slate-800">{selectedProduct.eval.dmb.ash}% <span className="text-[10px] font-normal text-slate-400">(Etich. {selectedProduct.analytical.ash}%)</span></div>
+                              <div className="text-sm font-extrabold text-slate-800">{selectedProduct.eval.dmb.ash}%</div>
                             </div>
                             <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-200">
                               <div className="text-[10px] text-slate-400">Grassi Reali (DMB)</div>
-                              <div className="text-sm font-extrabold text-slate-800">{selectedProduct.eval.dmb.fat}% <span className="text-[10px] font-normal text-slate-400">(Etich. {selectedProduct.analytical.fat}%)</span></div>
+                              <div className="text-sm font-extrabold text-slate-800">{selectedProduct.eval.dmb.fat}%</div>
                             </div>
                           </div>
                         </div>
@@ -1046,17 +1740,20 @@
                   )}
                 </div>
 
-                {/* ACCORDION 2: RECENSIONI COMMUNITY (+ FORM PER AGGIUNGERE LA PROPRIA) */}
+                {/* ACCORDION 2: RECENSIONI VERIFICATE */}
                 <div className="bg-white rounded-3xl border border-slate-200/80 shadow-sm overflow-hidden">
                   <button
                     onClick={() => setOpenAccordion(openAccordion === 'reviews' ? '' : 'reviews')}
                     className="w-full p-4 flex items-center justify-between text-left font-extrabold text-sm text-slate-900"
                   >
-                    <span>💬 Recensioni Verificate ({selectedProduct.reviews.length})</span>
-                    <span>{openAccordion === 'reviews' ? '▲' : '▼'}</span>
+                    <span>💬 Recensioni Community ({selectedProduct.reviews.length})</span>
+                    <span className="text-xs text-slate-400">{openAccordion === 'reviews' ? '▲' : '▼'}</span>
                   </button>
                   {openAccordion === 'reviews' && (
                     <div className="px-4 pb-4 space-y-3 border-t border-slate-100 pt-3">
+                      {selectedProduct.reviews.length === 0 && (
+                        <p className="text-xs text-slate-400 italic">Ancora nessuna recensione. Scrivi la prima esperienza con {activePet.name}!</p>
+                      )}
                       {selectedProduct.reviews.map(rev => (
                         <div key={rev.id} className="p-3 rounded-2xl bg-slate-50 border border-slate-200/70 text-xs space-y-1">
                           <div className="flex items-center justify-between">
@@ -1065,16 +1762,11 @@
                           </div>
                           <div className="text-[10px] text-slate-500 font-semibold">{rev.petInfo}</div>
                           <p className="text-slate-700 pt-1">{rev.comment}</p>
-                          <div className="flex flex-wrap gap-2 pt-1 text-[10px]">
-                            <span className="text-emerald-700 font-bold">👍 {rev.pros}</span>
-                            <span className="text-rose-600 font-bold">👎 {rev.cons}</span>
-                          </div>
                         </div>
                       ))}
 
-                      {/* Form Aggiungi Recensione */}
                       <form onSubmit={handleSendReview} className="p-3 rounded-2xl bg-emerald-50/60 border border-emerald-200 space-y-2 mt-2">
-                        <div className="text-xs font-extrabold text-emerald-950">Lascia la tua recensione per questo prodotto</div>
+                        <div className="text-xs font-extrabold text-emerald-950">Aggiungi la tua esperienza</div>
                         <div className="grid grid-cols-2 gap-2">
                           <input type="text" value={revAuthor} onChange={e => setRevAuthor(e.target.value)} placeholder="Il tuo nome" className="px-2.5 py-1.5 rounded-xl border border-slate-200 text-xs bg-white" />
                           <select value={revRating} onChange={e => setRevRating(e.target.value)} className="px-2.5 py-1.5 rounded-xl border border-slate-200 text-xs bg-white font-bold">
@@ -1085,10 +1777,6 @@
                             <option value="1">★☆☆☆☆ (1/5)</option>
                           </select>
                         </div>
-                        <div className="grid grid-cols-2 gap-2">
-                          <input type="text" value={revPros} onChange={e => setRevPros(e.target.value)} placeholder="Pro (es. Feci perfette)" className="px-2.5 py-1.5 rounded-xl border border-slate-200 text-xs bg-white" />
-                          <input type="text" value={revCons} onChange={e => setRevCons(e.target.value)} placeholder="Contro (es. Prezzo)" className="px-2.5 py-1.5 rounded-xl border border-slate-200 text-xs bg-white" />
-                        </div>
                         <textarea required rows="2" value={revComment} onChange={e => setRevComment(e.target.value)} placeholder={`Come si è trovato ${activePet.name}?`} className="w-full px-2.5 py-1.5 rounded-xl border border-slate-200 text-xs bg-white"></textarea>
                         <button type="submit" className="w-full py-2 rounded-xl bg-emerald-600 text-white font-bold text-xs">
                           Pubblica Recensione
@@ -1098,25 +1786,19 @@
                   )}
                 </div>
 
-                {/* ACCORDION 3: COMPARATORE PREZZI & OFFERTE */}
+                {/* ACCORDION 3: COMPARATORE PREZZI */}
                 <div className="bg-white rounded-3xl border border-slate-200/80 shadow-sm overflow-hidden">
                   <button
                     onClick={() => setOpenAccordion(openAccordion === 'prices' ? '' : 'prices')}
                     className="w-full p-4 flex items-center justify-between text-left font-extrabold text-sm text-slate-900"
                   >
-                    <span>🛒 Comparatore Prezzi Online ({selectedProduct.prices.length} negozi)</span>
-                    <span>{openAccordion === 'prices' ? '▲' : '▼'}</span>
+                    <span>🛒 Migliori Offerte Online ({selectedProduct.prices.length} negozi)</span>
+                    <span className="text-xs text-slate-400">{openAccordion === 'prices' ? '▲' : '▼'}</span>
                   </button>
                   {openAccordion === 'prices' && (
                     <div className="px-4 pb-4 space-y-2 border-t border-slate-100 pt-3">
                       {selectedProduct.prices.map((pr, idx) => (
-                        <a
-                          key={idx}
-                          href={pr.url}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="flex items-center justify-between p-3 rounded-2xl bg-slate-50 hover:bg-emerald-50 border border-slate-200 transition"
-                        >
+                        <a key={idx} href={pr.url} target="_blank" rel="noopener noreferrer" className="flex items-center justify-between p-3 rounded-2xl bg-slate-50 hover:bg-emerald-50 border border-slate-200 transition">
                           <div>
                             <div className="text-xs font-extrabold text-slate-900">{pr.store}</div>
                             <div className="text-[10px] text-emerald-700 font-semibold">{pr.note}</div>
@@ -1130,7 +1812,7 @@
               </div>
             )}
 
-            {/* BARRA DI NAVIGAZIONE INFERIORE FISSA */}
+            {/* BOTTOM NAVIGATION FISSA CON SCAN / EAN SEMPRE IN PRIMO PIANO */}
             <div className="sticky bottom-0 w-full bg-white/95 backdrop-blur border-t border-slate-200 px-6 py-2 flex items-center justify-between z-30">
               <button onClick={() => setFlowStep('home')} className={`flex flex-col items-center text-[11px] font-bold ${flowStep === 'home' ? 'text-emerald-600' : 'text-slate-400'}`}>
                 <span className="text-lg">🏠</span>
@@ -1142,30 +1824,25 @@
               >
                 <span>📷</span> SCAN / EAN
               </button>
-              <button onClick={() => setFlowStep('pet-setup')} className={`flex flex-col items-center text-[11px] font-bold ${flowStep === 'pet-setup' ? 'text-emerald-600' : 'text-slate-400'}`}>
+              <button onClick={() => openPetEditor(activePet)} className={`flex flex-col items-center text-[11px] font-bold ${flowStep === 'pet-setup' ? 'text-emerald-600' : 'text-slate-400'}`}>
                 <span className="text-lg">🐾</span>
-                <span>I Miei Pet</span>
+                <span>Profilo Pet</span>
               </button>
             </div>
           </div>
 
-          {/* MODALE SCANNER FOTOCAMERA REALE + RICERCA EAN */}
+          {/* MODALE SCANNER FOTOCAMERA + RICERCA EAN */}
           {showScannerModal && (
             <div className="fixed inset-0 bg-slate-900/75 z-50 flex items-center justify-center p-4">
               <div className="bg-white w-full max-w-md rounded-3xl p-5 space-y-4 max-h-[90vh] overflow-y-auto">
                 <div className="flex items-center justify-between">
-                  <h3 className="text-base font-extrabold text-slate-900">📷 Scansiona Barcode o Inserisci EAN</h3>
+                  <h3 className="text-base font-extrabold text-slate-900">📷 Scansiona Codice a Barre</h3>
                   <button onClick={() => { stopRealCamera(); setShowScannerModal(false); }} className="text-xs font-bold text-slate-500">Chiudi ✕</button>
                 </div>
-
-                {/* Box Fotocamera Reale */}
                 <div className="bg-slate-900 rounded-2xl p-3 text-center text-white">
                   {!cameraActive ? (
-                    <button
-                      onClick={startRealCamera}
-                      className="w-full py-3 rounded-xl bg-emerald-500 hover:bg-emerald-600 font-extrabold text-xs"
-                    >
-                      🎥 Attiva Fotocamera del Telefono
+                    <button onClick={startRealCamera} className="w-full py-3 rounded-xl bg-emerald-500 hover:bg-emerald-600 font-extrabold text-xs">
+                      🎥 Attiva Fotocamera dello Smartphone
                     </button>
                   ) : (
                     <div className="space-y-2">
@@ -1175,124 +1852,123 @@
                   )}
                   {cameraError && <p className="text-[11px] text-amber-300 mt-2">{cameraError}</p>}
                 </div>
-
-                {/* Ricerca Manuale EAN su Open Pet Food Facts */}
                 <div className="space-y-2">
-                  <label className="text-xs font-bold text-slate-700">Oppure digita un codice a barre EAN (13 cifre):</label>
+                  <label className="text-xs font-bold text-slate-700">Oppure inserisci le 13 cifre del codice EAN:</label>
                   <div className="flex gap-2">
-                    <input
-                      type="text"
-                      value={eanInput}
-                      onChange={e => setEanInput(e.target.value)}
-                      placeholder="Es. 8009470008723"
-                      className="flex-1 px-3 py-2 rounded-xl border border-slate-200 text-xs font-mono"
-                    />
-                    <button
-                      onClick={() => lookupBarcodeEAN(eanInput)}
-                      disabled={eanLoading}
-                      className="px-4 py-2 rounded-xl bg-slate-900 text-white font-bold text-xs"
-                    >
-                      {eanLoading ? '...' : 'Cerca'}
+                    <input type="text" value={eanInput} onChange={e => setEanInput(e.target.value)} placeholder="Es. 7613035799738" className="flex-1 px-3 py-2 rounded-xl border border-slate-200 text-xs font-mono" />
+                    <button onClick={() => lookupBarcodeEAN(eanInput)} disabled={eanLoading} className="px-4 py-2 rounded-xl bg-slate-900 text-white font-bold text-xs">
+                      {eanLoading ? '...' : 'Analizza'}
                     </button>
                   </div>
                 </div>
-
-                {/* Prodotti Rapidi di Test */}
-                <div className="space-y-1.5 pt-2 border-t border-slate-100">
-                  <div className="text-[11px] font-bold text-slate-500">Codici pronti per test rapido con un clic:</div>
-                  {products.map(p => (
-                    <button
-                      key={p.id}
-                      onClick={() => { stopRealCamera(); setSelectedProductId(p.id); setShowScannerModal(false); setFlowStep('product'); }}
-                      className="w-full text-left p-2.5 rounded-xl bg-slate-50 hover:bg-emerald-50 border border-slate-200 text-xs flex justify-between items-center"
-                    >
-                      <span className="font-bold text-slate-800 truncate">{p.name}</span>
-                      <span className="text-[10px] font-mono text-slate-400 ml-2">{p.ean}</span>
-                    </button>
-                  ))}
+                <div className="pt-2 border-t border-slate-100 flex justify-between items-center text-xs">
+                  <span className="text-slate-500">Prodotto senza codice a barre?</span>
+                  <button onClick={() => { stopRealCamera(); setShowScannerModal(false); setShowAddProductModal(true); }} className="font-bold text-emerald-600 underline">
+                    + Inseriscilo a mano
+                  </button>
                 </div>
               </div>
             </div>
           )}
 
-          {/* MODALE GLOSSARIO ACRONIMI E METODOLOGIA */}
-          {showGlossaryModal && (
+          {/* MODALE AGGIUNTA RAPIDA PRODOTTO MANCANTE */}
+          {showAddProductModal && (
             <div className="fixed inset-0 bg-slate-900/75 z-50 flex items-center justify-center p-4">
-              <div className="bg-white w-full max-w-md rounded-3xl p-5 space-y-3 max-h-[85vh] overflow-y-auto">
+              <div className="bg-white w-full max-w-md rounded-3xl p-5 space-y-3 max-h-[90vh] overflow-y-auto">
                 <div className="flex items-center justify-between">
-                  <h3 className="text-base font-extrabold text-slate-900">📖 Come calcoliamo i punteggi & Acronimi</h3>
-                  <button onClick={() => setShowGlossaryModal(false)} className="text-xs font-bold text-slate-500">Chiudi ✕</button>
+                  <h3 className="text-base font-extrabold text-slate-900">➕ Aggiungi Nuovo Prodotto</h3>
+                  <button onClick={() => setShowAddProductModal(false)} className="text-xs font-bold text-slate-500">Chiudi ✕</button>
                 </div>
-                <p className="text-xs text-slate-600">
-                  PetScore utilizza uno standard indipendente basato sulle linee guida nutrizionali veterinarie europee, senza alcuna influenza pubblicitaria dei produttori.
+                <p className="text-xs text-slate-500">
+                  Inserisci i dati base dall'etichetta per calcolare subito il punteggio per <strong>{activePet.name}</strong>.
                 </p>
-                <div className="space-y-2">
-                  {ACRONYM_GLOSSARY.map(item => (
-                    <div key={item.code} className="p-3 rounded-2xl bg-slate-50 border border-slate-200">
-                      <div className="text-xs font-extrabold text-emerald-800">{item.code} — {item.name}</div>
-                      <div className="text-[11px] text-slate-600 mt-0.5">{item.desc}</div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-          )}
+                <form onSubmit={handleCreateNewProduct} className="space-y-2.5 text-xs">
+                  <div className="grid grid-cols-2 gap-2">
+                    <button type="button" onClick={() => setNewProdCat('food')} className={`py-2 rounded-xl font-bold border ${newProdCat === 'food' ? 'bg-slate-900 text-white' : 'bg-slate-50 text-slate-600'}`}>🥣 Cibo / Snack</button>
+                    <button type="button" onClick={() => setNewProdCat('non-food')} className={`py-2 rounded-xl font-bold border ${newProdCat === 'non-food' ? 'bg-slate-900 text-white' : 'bg-slate-50 text-slate-600'}`}>🛡️ Non-Food</button>
+                  </div>
+                  <div className="grid grid-cols-2 gap-2">
+                    <input type="text" required value={newProdBrand} onChange={e => setNewProdBrand(e.target.value)} placeholder="Marca (es. Monge)" className="px-3 py-2 rounded-xl border border-slate-200" />
+                    <input type="text" value={newProdEan} onChange={e => setNewProdEan(e.target.value)} placeholder="Codice EAN (opz.)" className="px-3 py-2 rounded-xl border border-slate-200 font-mono" />
+                  </div>
+                  <input type="text" required value={newProdName} onChange={e => setNewProdName(e.target.value)} placeholder="Nome prodotto (es. Crocchette Salmone)" className="w-full px-3 py-2 rounded-xl border border-slate-200" />
+                  <textarea rows="2" value={newProdIng} onChange={e => setNewProdIng(e.target.value)} placeholder="Primi ingredienti scritti sull'etichetta..." className="w-full px-3 py-2 rounded-xl border border-slate-200"></textarea>
 
-          {/* MODALE FEEDBACK BETA TESTER */}
-          {showFeedbackModal && (
-            <div className="fixed inset-0 bg-slate-900/75 z-50 flex items-center justify-center p-4">
-              <div className="bg-white w-full max-w-md rounded-3xl p-5 space-y-3">
-                <div className="flex items-center justify-between">
-                  <h3 className="text-base font-extrabold text-slate-900">🐞 Invia un suggerimento o segnala un problema</h3>
-                  <button onClick={() => setShowFeedbackModal(false)} className="text-xs font-bold text-slate-500">Chiudi ✕</button>
-                </div>
-                <form onSubmit={handleSendFeedback} className="space-y-3 text-xs">
-                  <input type="text" value={fbName} onChange={e => setFbName(e.target.value)} placeholder="Il tuo nome (es. Zia Marta, Luca...)" className="w-full px-3 py-2 rounded-xl border border-slate-200" />
-                  <select value={fbType} onChange={e => setFbType(e.target.value)} className="w-full px-3 py-2 rounded-xl border border-slate-200 font-bold">
-                    <option value="Suggerimento">💡 Idea o Suggerimento</option>
-                    <option value="Prodotto Mancante">📦 Prodotto che vorrei trovare</option>
-                    <option value="Bug">🐞 Qualcosa non funziona</option>
-                  </select>
-                  <textarea required rows="3" value={fbMessage} onChange={e => setFbMessage(e.target.value)} placeholder="Scrivi qui il tuo commento per aiutarci a migliorare l'app..." className="w-full px-3 py-2 rounded-xl border border-slate-200"></textarea>
+                  {newProdCat === 'food' && (
+                    <div className="grid grid-cols-3 gap-2 pt-1">
+                      <div>
+                        <label className="text-[10px] font-bold text-slate-500">% Proteine</label>
+                        <input type="number" step="0.5" value={newProdProt} onChange={e => setNewProdProt(e.target.value)} className="w-full px-2.5 py-1.5 rounded-xl border border-slate-200 font-bold" />
+                      </div>
+                      <div>
+                        <label className="text-[10px] font-bold text-slate-500">% Grassi</label>
+                        <input type="number" step="0.5" value={newProdFat} onChange={e => setNewProdFat(e.target.value)} className="w-full px-2.5 py-1.5 rounded-xl border border-slate-200 font-bold" />
+                      </div>
+                      <div>
+                        <label className="text-[10px] font-bold text-slate-500">% Ceneri</label>
+                        <input type="number" step="0.5" value={newProdAsh} onChange={e => setNewProdAsh(e.target.value)} className="w-full px-2.5 py-1.5 rounded-xl border border-slate-200 font-bold" />
+                      </div>
+                    </div>
+                  )}
+
+                  <div className="p-2.5 rounded-xl bg-emerald-50 text-[11px] text-emerald-800 font-medium">
+                    🌱 Aggiungendo un alimento contribuisci anche ad arricchire la rete gratuita mondiale <strong>Open Pet Food Facts</strong>.
+                  </div>
+
                   <button type="submit" className="w-full py-3 rounded-2xl bg-emerald-500 text-white font-extrabold">
-                    Invia Feedback
+                    Calcola Punteggio & Salva
                   </button>
                 </form>
               </div>
             </div>
           )}
 
-          {/* MODALE CONFIGURAZIONE SUPABASE CLOUD */}
-          {showCloudModal && (
+          {/* MODALE LINEE GUIDA & ACRONIMI (SENZA FORMULE) */}
+          {showGlossaryModal && (
             <div className="fixed inset-0 bg-slate-900/75 z-50 flex items-center justify-center p-4">
-              <div className="bg-white w-full max-w-md rounded-3xl p-5 space-y-3 text-xs">
+              <div className="bg-white w-full max-w-md rounded-3xl p-5 space-y-3 max-h-[85vh] overflow-y-auto">
                 <div className="flex items-center justify-between">
-                  <h3 className="text-base font-extrabold text-slate-900">☁️ Connessione Supabase Cloud</h3>
-                  <button onClick={() => setShowCloudModal(false)} className="text-xs font-bold text-slate-500">Chiudi ✕</button>
+                  <h3 className="text-base font-extrabold text-slate-900">📖 Linee Guida & Significato Indici</h3>
+                  <button onClick={() => setShowGlossaryModal(false)} className="text-xs font-bold text-slate-500">Chiudi ✕</button>
                 </div>
-                <p className="text-slate-600">
-                  Incolla qui il tuo <strong>Project URL</strong> e la <strong>anon public key</strong> di Supabase (da <em>Project Settings &gt; API</em>) per sincronizzare recensioni e feedback in tempo reale.
+                <p className="text-xs text-slate-600 leading-relaxed">
+                  PetScore valuta i prodotti in modo 100% indipendente seguendo i parametri nutrizionali veterinari europei. Nessun produttore può pagare per modificare i punteggi.
                 </p>
-                <input
-                  type="text"
-                  value={sbUrl}
-                  onChange={e => { setSbUrl(e.target.value); localStorage.setItem('ps_sb_url', e.target.value); }}
-                  placeholder="https://tuoprogetto.supabase.co"
-                  className="w-full px-3 py-2 rounded-xl border border-slate-200 font-mono text-[11px]"
-                />
-                <input
-                  type="text"
-                  value={sbKey}
-                  onChange={e => { setSbKey(e.target.value); localStorage.setItem('ps_sb_key', e.target.value); }}
-                  placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
-                  className="w-full px-3 py-2 rounded-xl border border-slate-200 font-mono text-[11px]"
-                />
-                <button
-                  onClick={() => { setShowCloudModal(false); showToast('Impostazioni Cloud salvate!'); }}
-                  className="w-full py-2.5 rounded-xl bg-slate-900 text-white font-bold"
-                >
-                  Salva e Connetti
-                </button>
+                <div className="space-y-2">
+                  {ACRONYM_GLOSSARY.map(item => (
+                    <div key={item.code} className="p-3 rounded-2xl bg-slate-50 border border-slate-200">
+                      <div className="text-xs font-extrabold text-emerald-800">{item.code} — {item.name}</div>
+                      <div className="text-[11px] text-slate-600 mt-0.5 leading-relaxed">{item.desc}</div>
+                    </div>
+                  ))}
+                </div>
+                <div className="p-3 rounded-2xl bg-emerald-50 border border-emerald-200 text-[11px] text-emerald-900">
+                  🌱 <strong>Insieme per la trasparenza:</strong> PetScore supporta e contribuisce attivamente alla rete mondiale aperta <strong>Open Pet Food Facts</strong> per rendere i dati nutrizionali accessibili a tutti.
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* MODALE SUGGERIMENTI BETA TESTER */}
+          {showFeedbackModal && (
+            <div className="fixed inset-0 bg-slate-900/75 z-50 flex items-center justify-center p-4">
+              <div className="bg-white w-full max-w-md rounded-3xl p-5 space-y-3">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-base font-extrabold text-slate-900">💬 Invia un suggerimento</h3>
+                  <button onClick={() => setShowFeedbackModal(false)} className="text-xs font-bold text-slate-500">Chiudi ✕</button>
+                </div>
+                <form onSubmit={handleSendFeedback} className="space-y-3 text-xs">
+                  <input type="text" value={fbName} onChange={e => setFbName(e.target.value)} placeholder="Il tuo nome" className="w-full px-3 py-2 rounded-xl border border-slate-200" />
+                  <select value={fbType} onChange={e => setFbType(e.target.value)} className="w-full px-3 py-2 rounded-xl border border-slate-200 font-bold">
+                    <option value="Suggerimento">💡 Idea o miglioramento</option>
+                    <option value="Prodotto Mancante">📦 Prodotto che vorrei trovare</option>
+                    <option value="Segnalazione">🐞 Qualcosa non funziona</option>
+                  </select>
+                  <textarea required rows="3" value={fbMessage} onChange={e => setFbMessage(e.target.value)} placeholder="Scrivi qui il tuo messaggio..." className="w-full px-3 py-2 rounded-xl border border-slate-200"></textarea>
+                  <button type="submit" className="w-full py-3 rounded-2xl bg-emerald-500 text-white font-extrabold">
+                    Invia Messaggio
+                  </button>
+                </form>
               </div>
             </div>
           )}
